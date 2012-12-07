@@ -23,12 +23,16 @@ namespace OctopusServer
         {
             InitializeComponent();
             s_singleton = this;
+
+            Config.Load();
+            m_update_file_path_txb.Text = DataManager.UpdateFilePath;
+            m_version_tbx.Text = DataManager.Version;
         }
 
         public static void Log(string msg)
         {
             s_singleton.Invoke(new Action(delegate {
-                s_singleton.m_information_listbox.Items.Add(msg);
+                s_singleton.m_information_listbox.Items.Add(DateTime.Now.ToShortTimeString() + " : " + msg);
             }));
         }
 
@@ -38,7 +42,6 @@ namespace OctopusServer
             if (dlg.ShowDialog() == DialogResult.OK)
             {
                 m_update_file_path_txb.Text = dlg.FileName;
-                DataManager.UpdateFilePath = dlg.FileName;
                 Workbench.Log("Update File: " + DataManager.UpdateFilePath);
             }
         }
@@ -63,6 +66,26 @@ namespace OctopusServer
         private void m_version_tbx_TextChanged(object sender, EventArgs e)
         {
             DataManager.Version = m_version_tbx.Text.Trim();
+        }
+
+        private void m_clear_information_Click(object sender, EventArgs e)
+        {
+            m_information_listbox.Items.Clear();
+        }
+
+        private void m_update_file_path_txb_TextChanged(object sender, EventArgs e)
+        {
+            DataManager.UpdateFilePath = m_update_file_path_txb.Text;
+        }
+
+        private void Workbench_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            Config.Save();
+        }
+
+        private void m_for_user_txb_TextChanged(object sender, EventArgs e)
+        {
+            DataManager.ForUser = m_for_user_txb.Text;
         }        
     }
 }

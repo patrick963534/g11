@@ -47,7 +47,8 @@ namespace OctopusServer.Core
                     if (info == null)
                         continue;
 
-                    if (info.Command.Contains("Octopus_Update"))
+                    if (info.Command.Contains("Octopus_Update") && 
+                        (string.IsNullOrEmpty(DataManager.ForUser) || info.Path.Contains(DataManager.ForUser)))
                     {
                         Workbench.Log(string.Format("Data Require from: {0}", from.ToString()));
                         Workbench.Log("Begin Sending Data...");

@@ -10,7 +10,8 @@ namespace Octopus.Core
         private static string m_normalFile = "Octopus.exe";
         private static string m_updateFile = "Octopus_update.exe";
         public static string Original_Path;
-        public static string Version = "v1.5.6";
+        public static string Version = "1.5.34";
+        public static bool InDevelopment = false;
 
         public static bool IsUpdateFile()
         {

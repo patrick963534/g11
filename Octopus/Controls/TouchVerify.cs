@@ -17,6 +17,8 @@ namespace Octopus.Base
         private static string m_touch_tip_file = "m_touch_tip";
         private static Image m_touch_tip;
 
+        private string m_msg;
+
         static TouchVerify()
         {
             m_singleton = new TouchVerify();
@@ -35,12 +37,16 @@ namespace Octopus.Base
                 m_touch_tip = Image.FromFile(m_touch_tip_file);
         }
 
-        public static bool Tell()
+        public static bool Tell(string msg)
         {
             if (m_singleton.Visible)
                 return false;
 
-            Workbench.DoAction(new Action(delegate{ m_singleton.Show(); }));
+            Workbench.DoAction(new Action(delegate
+            {
+                m_singleton.m_msg = msg;
+                m_singleton.Show();
+            }));
 
             return true;
         }
@@ -69,8 +75,10 @@ namespace Octopus.Base
 
             if (m_touch_tip == null)
             {
-                g.FillRectangle(Brushes.Green, new Rectangle(img.Width / 2 - 300, img.Height / 2 - 100, 600, 200));
-                g.DrawString("打卡时间到了!!", m_font, Brushes.Black, new Point(img.Width / 2, img.Height / 2), format);
+                int cx = img.Width / 2;
+                int cy = img.Height / 2;
+                g.FillRectangle(Brushes.White, new Rectangle(cx - 300, cy - 100, 600, 200));
+                g.DrawString(m_msg, m_font, Brushes.Black, new Point(cx, cy), format);
             }
             else
             {

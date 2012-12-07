@@ -46,7 +46,7 @@
             // m_tray
             // 
             this.m_tray.Icon = ((System.Drawing.Icon)(resources.GetObject("m_tray.Icon")));
-            this.m_tray.Text = "notifyIcon1";
+            this.m_tray.Text = "Octopus";
             this.m_tray.Visible = true;
             this.m_tray.Click += new System.EventHandler(this.m_tray_Click);
             // 
@@ -56,13 +56,13 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(445, 332);
             this.Controls.Add(this.m_information_listbox);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "Workbench";
-            this.ShowIcon = false;
             this.ShowInTaskbar = false;
             this.Text = "Octopus";
-            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Workbench_FormClosed);
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Workbench_FormClosing);
             this.ResumeLayout(false);
 
         }

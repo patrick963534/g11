@@ -15,6 +15,8 @@ namespace Octopus
     {
         private static Workbench s_singleton;
 
+        private bool m_really_close;
+
         public Workbench()
         {
             InitializeComponent();
@@ -24,7 +26,9 @@ namespace Octopus
             // Call the Show() method to force create Window Handler in the insternal.
             // Otherwise we can't use Invoke() method.
             this.Show();
-            //this.Hide();           
+            this.Hide();
+
+            s_singleton.m_information_listbox.Items.Add(DataManager.Version);
             
             TouchVerifyCore.Start();
             NetClient.Start();
@@ -52,26 +56,41 @@ namespace Octopus
         {
             s_singleton.Invoke(new Action(delegate
             {
+                s_singleton.m_really_close = true;
+                s_singleton.m_tray.Visible = false;
                 NetClient.Stop();
                 TouchVerifyCore.Stop();
                 Application.Exit();
             }));
         }
 
-        private void Workbench_FormClosed(object sender, FormClosedEventArgs e)
-        {
-            ExitForm();
-        }
-
         private void m_tray_Click(object sender, EventArgs e)
         {
-            if (s_singleton.Visible)
-                s_singleton.Hide();
-            else
+            MouseEventArgs mouse_e = (MouseEventArgs)e;
+
+            if (mouse_e.Button == MouseButtons.Left)
             {
-                s_singleton.Show();
-                s_singleton.BringToFront();
+                if (s_singleton.Visible)
+                    s_singleton.Hide();
+                else
+                    s_singleton.Show();
             }
+            else if (mouse_e.Button == MouseButtons.Right)
+            {
+                if (MessageBox.Show("是否退出章鱼?", "Octopus", MessageBoxButtons.YesNo) == DialogResult.Yes)
+                {
+                    ExitForm();
+                }
+            }
+        }
+
+        private void Workbench_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (!s_singleton.m_really_close)
+            {
+                this.Hide();
+                e.Cancel = true;
+            }            
         }
     }
 }

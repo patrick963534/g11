@@ -13,19 +13,26 @@ namespace Octopus
         [STAThread]
         static void Main(string[] args)
         {
-            if (args.Length != 0 && args[0] == "-remove_update_file")
+            if (args.Length != 0)
             {
-                Thread.Sleep(5000);
-                File.Delete(DataManager.UpdatingFile);
+                if (args[0] == "-remove_update_file")
+                {
+                    Thread.Sleep(5000);
+                    File.Delete(DataManager.UpdatingFile);
+                }
+                else if (args[0] == "-development")
+                {
+                    DataManager.InDevelopment = true;
+                }                
             }
 
-            if (DataManager.IsUpdateFile())
+            if (!DataManager.InDevelopment && DataManager.IsUpdateFile())
             {
                 Thread.Sleep(10000);
                 File.Copy(DataManager.UpdatingFile, DataManager.NormalFile, true);
                 Process.Start("\"" + DataManager.NormalFile + "\"", "-remove_update_file");
             }
-            else if (!DataManager.IsStartup())
+            else if (!DataManager.InDevelopment && !DataManager.IsStartup())
             {
                 File.Copy(DataManager.AppPath, DataManager.StartupAppPath, true);
                 Process.Start("\"" + DataManager.StartupAppPath + "\"");

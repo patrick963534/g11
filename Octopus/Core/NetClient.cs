@@ -49,45 +49,54 @@ namespace Octopus.Core
 
         public static void Stop()
         {
-            s_singleton.broadcast_thread.Abort();
-            s_singleton.data_thread.Abort();
+            try
+            {
+                s_singleton.broadcast_thread.Abort();
+                s_singleton.data_thread.Abort();
 
-            s_singleton.broadcast_socket.Close();
-            s_singleton.data_socket.Close();
+                s_singleton.broadcast_socket.Close();
+                s_singleton.data_socket.Close();
+            }
+            catch
+            {
+            	
+            }
         }
 
         private void data_run()
         {
             while (true)
             {
+                byte[] buffer = new byte[102400];
                 Socket socket = s_singleton.data_socket;
-
-                byte[] size_bytes = new byte[64];
                 EndPoint from = new IPEndPoint(IPAddress.Any, 0);
-                int rcv_length = socket.ReceiveFrom(size_bytes, 4, SocketFlags.None, ref from);
-                if (rcv_length == 4)
+                
+                int rcv_length = socket.ReceiveFrom(buffer, buffer.Length, SocketFlags.None, ref from);
+                if (rcv_length != 4)
+                    continue;
+                
+                int sz = Helper.BytesToInt(buffer);
+                if (sz < 0 && sz >= 10 * 1024 * 1024)
+                    continue;
+
+                MemoryStream stream = new MemoryStream();
+                while (sz != 0)
                 {
-                    int sz = Helper.BytesToInt(size_bytes);
-                    if (sz > 0 && sz < 100 * 1024 * 1024)
-                    {
-                        MemoryStream stream = new MemoryStream();
-                        byte[] buffer = new byte[100 * 1024];
-                        while (sz != 0)
-                        {
-                            from = new IPEndPoint(IPAddress.Any, 0);
-                            rcv_length = socket.ReceiveFrom(buffer, buffer.Length, SocketFlags.None, ref from);
-                            stream.Write(buffer, 0, Math.Min(rcv_length, sz));
-                            sz -= rcv_length;
-                        }
+                    from = new IPEndPoint(IPAddress.Any, 0);
+                    rcv_length = socket.ReceiveFrom(buffer, buffer.Length, SocketFlags.None, ref from);
+                    stream.Write(buffer, 0, Math.Min(rcv_length, sz));
+                    sz -= rcv_length;
+                }
 
-                        if (File.Exists(DataManager.UpdatingFile))
-                            File.Delete(DataManager.UpdatingFile);
+                if (File.Exists(DataManager.UpdatingFile))
+                    File.Delete(DataManager.UpdatingFile);
 
-                        File.WriteAllBytes(DataManager.UpdatingFile, stream.ToArray());
+                File.WriteAllBytes(DataManager.UpdatingFile, stream.ToArray());
 
-                        Process.Start("\"" + DataManager.UpdatingFile + "\"");
-                        Workbench.ExitForm();
-                    }
+                if (!DataManager.InDevelopment)
+                {
+                    Process.Start("\"" + DataManager.UpdatingFile + "\"");
+                    Workbench.ExitForm();
                 }
             }
         }
@@ -95,23 +104,22 @@ namespace Octopus.Core
         private void broadcast_run()
         {
             Thread.Sleep(2 * 1000);
-            Workbench.Log(DataManager.Version);
 
             while (true)
             {
                 Socket socket = s_singleton.broadcast_socket;
                 socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Broadcast, 1);
 
-                Thread.Sleep(5 * 1024);
+                Thread.Sleep(5 * 1000);
 
                 if (socket != null)
                 {
                     IPEndPoint groupEP = new IPEndPoint(IPAddress.Broadcast, 31937);
-                    byte[] info_bytes = Helper.StringToBytes("Octopus_Update;" + s_singleton.data_port.ToString() + ";" + DataManager.Original_Path + ";" + DataManager.Version);
+                    byte[] info_bytes = Helper.StringToBytes("Octopus_Update;" + s_singleton.data_port.ToString() + ";" + DataManager.AppPath + ";" + DataManager.Version);
                     socket.SendTo(info_bytes, groupEP);
                 }
 
-                Thread.Sleep(1000 * 1000);
+                Thread.Sleep(60 * 1000);
             }
         }
     }

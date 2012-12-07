@@ -8,5 +8,6 @@ namespace OctopusServer.Core
     {
         public static string UpdateFilePath;
         public static string Version;
+        public static string ForUser;
     }
 }

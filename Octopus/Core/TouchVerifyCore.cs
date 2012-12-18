@@ -6,7 +6,7 @@ using Octopus.Base;
 
 namespace Octopus.Core
 {
-    public class TouchVerifyCore
+    internal class TouchVerifyCore
     {
         private static TouchVerifyCore s_singleton;
         private static string PressTouchMessage = "快去奉献你的指纹吧, 否则后果自负~~!!";
@@ -21,7 +21,7 @@ namespace Octopus.Core
             s_singleton = new TouchVerifyCore();
         }
 
-        public static void Start()
+        internal static void Start()
         {
             s_singleton.thread = new Thread(new ThreadStart(s_singleton.run));
             s_singleton.thread.Name = "Touch_Verify_Core_Thread";
@@ -29,9 +29,9 @@ namespace Octopus.Core
             s_singleton.thread.Start();
         }
 
-        public static void Stop()
+        internal static void Stop()
         {
-            s_singleton.thread.Abort();
+            //s_singleton.thread.Abort();
         }
 
         private void run()
@@ -73,11 +73,11 @@ namespace Octopus.Core
 
         private class Info
         {
-            public int day;
-            public bool morning;
-            public bool afternoon;
-            public bool lunch;
-            public bool afternoon_rest;
+            internal int day;
+            internal bool morning;
+            internal bool afternoon;
+            internal bool lunch;
+            internal bool afternoon_rest;
         }
     }
 }

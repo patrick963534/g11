@@ -13,13 +13,13 @@ using OctopusServer.Core;
 
 namespace OctopusServer
 {
-    public delegate void Action();
+    internal delegate void Action();
 
-    public partial class Workbench : Form
+    internal partial class Workbench : Form
     {
         private static Workbench s_singleton;
 
-        public Workbench()
+        internal Workbench()
         {
             InitializeComponent();
             s_singleton = this;
@@ -29,9 +29,11 @@ namespace OctopusServer
             m_version_tbx.Text = DataManager.Version;
         }
 
-        public static void Log(string msg)
+        internal static void Log(string msg)
         {
             s_singleton.Invoke(new Action(delegate {
+                if (s_singleton.m_information_listbox.Items.Count > 200)
+                    s_singleton.m_information_listbox.Items.Clear();
                 s_singleton.m_information_listbox.Items.Add(DateTime.Now.ToShortTimeString() + " : " + msg);
             }));
         }

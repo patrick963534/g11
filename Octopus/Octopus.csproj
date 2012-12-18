@@ -44,6 +44,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Commands\Command.cs" />
+    <Compile Include="Controls\ChatForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Controls\ChatForm.Designer.cs">
+      <DependentUpon>ChatForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="Controls\TouchVerify.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -54,6 +61,12 @@
     <Compile Include="Core\Helper.cs" />
     <Compile Include="Core\NetClient.cs" />
     <Compile Include="Core\TouchVerifyCore.cs" />
+    <Compile Include="Commands\CommandPool.cs" />
+    <Compile Include="Core\UserInfo.cs" />
+    <Compile Include="Net\IncomingPackagePool.cs" />
+    <Compile Include="Net\NetService.cs" />
+    <Compile Include="Net\OutgoingPackagePool.cs" />
+    <Compile Include="Net\NetPackage.cs" />
     <Compile Include="Workbench.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -62,6 +75,9 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="Controls\ChatForm.resx">
+      <DependentUpon>ChatForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Controls\TouchVerify.resx">
       <DependentUpon>TouchVerify.cs</DependentUpon>
     </EmbeddedResource>

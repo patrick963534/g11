@@ -6,59 +6,85 @@ using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
 using Octopus.Core;
+using Octopus.Commands;
+using Octopus.Net;
+using Octopus.Controls;
+using System.Net;
 
 namespace Octopus
 {
-    public delegate void Action();
+    internal delegate void DoAction();
 
-    public partial class Workbench : Form
+    internal partial class Workbench : Form
     {
         private static Workbench s_singleton;
 
         private bool m_really_close;
 
-        public Workbench()
+        internal Workbench()
         {
             InitializeComponent();
-
             s_singleton = this;
 
             // Call the Show() method to force create Window Handler in the insternal.
             // Otherwise we can't use Invoke() method.
             this.Show();
-            this.Hide();
-
-            s_singleton.m_information_listbox.Items.Add(DataManager.Version);
             
             TouchVerifyCore.Start();
-            NetClient.Start();
+            NetService.Start();
+
+            Workbench.Log(DataManager.Version);
         }
 
-        public static void HideIt()
+        internal static void HideIt()
         {
             s_singleton.Hide();
         }
 
-        public static void Log(string msg)
+        internal static void Log(string msg)
         {
-            s_singleton.Invoke(new Action(delegate
+            s_singleton.Invoke(new DoAction(delegate
             {
-                s_singleton.m_information_listbox.Items.Add(msg);
+                if (!string.IsNullOrEmpty(s_singleton.m_msg_show_tbx.Text))
+                    s_singleton.m_msg_show_tbx.Text += "\r\n";
+
+                s_singleton.m_msg_show_tbx.Text += msg;
             }));
         }
 
-        public static void DoAction(Action action)
+        internal static void DoAction(DoAction action)
         {
             s_singleton.Invoke(action);
         }
 
-        public static void ExitForm()
+        internal static void AddClient(string name, IPEndPoint remoteIP)
         {
-            s_singleton.Invoke(new Action(delegate
+            if (UserInfoManager.FindUser(remoteIP) != null)
+                return;
+
+            if (name == Dns.GetHostName())
+                return;
+
+            s_singleton.Invoke(new DoAction(delegate
+            {
+                IPAddress addr = remoteIP.Address;
+                int port = remoteIP.Port;
+
+                Workbench.Log(string.Format("Add User: {0}, IP: {1}", name, remoteIP));
+
+                UserInfo user = new UserInfo(new IPEndPoint(addr, port), name);
+                UserInfoManager.AddUser(user);
+                s_singleton.m_users_list.Items.Add(user);
+            }));
+        }
+
+        internal static void ExitForm()
+        {
+            s_singleton.Invoke(new DoAction(delegate
             {
                 s_singleton.m_really_close = true;
                 s_singleton.m_tray.Visible = false;
-                NetClient.Stop();
+                NetService.Stop();
                 TouchVerifyCore.Stop();
                 Application.Exit();
             }));
@@ -70,14 +96,12 @@ namespace Octopus
 
             if (mouse_e.Button == MouseButtons.Left)
             {
-                if (s_singleton.Visible)
-                    s_singleton.Hide();
-                else
-                    s_singleton.Show();
+                s_singleton.Show();
+                s_singleton.Activate();
             }
             else if (mouse_e.Button == MouseButtons.Right)
             {
-                if (MessageBox.Show("是否退出章鱼?", "Octopus", MessageBoxButtons.YesNo) == DialogResult.Yes)
+                //if (MessageBox.Show("是否退出八爪鱼?", "Octopus", MessageBoxButtons.YesNo) == DialogResult.Yes)
                 {
                     ExitForm();
                 }
@@ -90,7 +114,22 @@ namespace Octopus
             {
                 this.Hide();
                 e.Cancel = true;
-            }            
+            }
+        }
+
+        private void m_users_list_DoubleClick(object sender, EventArgs e)
+        {
+            UserInfo user = (UserInfo)m_users_list.SelectedItem;
+
+            if (user.Chatter == null)
+                user.Chatter = new ChatForm(user);
+
+            user.Chatter.Show();
+        }
+
+        private void m_add_client_btn_Click(object sender, EventArgs e)
+        {
+            OutgoingPackagePool.AddFirst(NetPackageGenerater.BroadcastFindUser());
         }
     }
 }

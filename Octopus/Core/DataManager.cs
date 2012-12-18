@@ -5,41 +5,40 @@ using System.IO;
 
 namespace Octopus.Core
 {
-    public class DataManager
+    internal class DataManager
     {
         private static string m_normalFile = "Octopus.exe";
         private static string m_updateFile = "Octopus_update.exe";
-        public static string Original_Path;
-        public static string Version = "1.5.34";
-        public static bool InDevelopment = false;
+        internal static string Version = "1.5.40";
+        internal static bool InDevelopment = false;
 
-        public static bool IsUpdateFile()
+        internal static bool IsUpdateFile()
         {
             return AppPath.Contains(m_updateFile);
         }
 
-        public static bool IsStartup()
+        internal static bool IsStartup()
         {
             string startup_folder = Environment.GetFolderPath(Environment.SpecialFolder.Startup);
             return (startup_folder == Path.GetDirectoryName(AppPath));
         }
 
-        public static string StartupAppPath
+        internal static string StartupAppPath
         {
             get { return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Startup), Path.GetFileName(AppPath)); }
         }
 
-        public static string AppPath
+        internal static string AppPath
         {
             get { return System.Reflection.Assembly.GetExecutingAssembly().Location; }
         }
 
-        public static string NormalFile
+        internal static string NormalFile
         {
             get { return Path.Combine(Path.GetDirectoryName(AppPath), m_normalFile); }
         }
 
-        public static string UpdatingFile
+        internal static string UpdatingFile
         {
             get { return Path.Combine(Path.GetDirectoryName(AppPath), m_updateFile); }
         }

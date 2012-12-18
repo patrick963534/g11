@@ -41,7 +41,7 @@ namespace Octopus
             {
                 Application.EnableVisualStyles();
                 Application.SetCompatibleTextRenderingDefault(false);
-                Application.Run(new HideOnStartupApplicationContext(new Workbench()));
+                Application.Run(new Workbench());
             }
         }
     }
@@ -50,7 +50,7 @@ namespace Octopus
     {
         private Form form;
 
-        public HideOnStartupApplicationContext(Form mainForm)
+        internal HideOnStartupApplicationContext(Form mainForm)
         {
             this.form = mainForm;
         }

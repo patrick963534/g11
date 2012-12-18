@@ -4,10 +4,10 @@ using System.Text;
 
 namespace OctopusServer.Core
 {
-    public class DataManager
+    internal class DataManager
     {
-        public static string UpdateFilePath;
-        public static string Version;
-        public static string ForUser;
+        internal static string UpdateFilePath;
+        internal static string Version;
+        internal static string ForUser;
     }
 }

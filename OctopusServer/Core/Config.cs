@@ -5,11 +5,11 @@ using System.IO;
 
 namespace OctopusServer.Core
 {
-    internal class Config
+    public class Config
     {
         private static string ConfigFile = "OctopusServer.conf";
 
-        internal static void Load()
+        public static void Load()
         {
             string file = Path.Combine(Path.GetTempPath(), ConfigFile);
             if (!File.Exists(file))
@@ -31,7 +31,7 @@ namespace OctopusServer.Core
             }
         }
 
-        internal static void Save()
+        public static void Save()
         {
             string file = Path.Combine(Path.GetTempPath(), ConfigFile);
             if (File.Exists(file))

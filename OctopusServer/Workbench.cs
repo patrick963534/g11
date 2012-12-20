@@ -13,13 +13,13 @@ using OctopusServer.Core;
 
 namespace OctopusServer
 {
-    internal delegate void Action();
+    public delegate void Action();
 
-    internal partial class Workbench : Form
+    public partial class Workbench : Form
     {
         private static Workbench s_singleton;
 
-        internal Workbench()
+        public Workbench()
         {
             InitializeComponent();
             s_singleton = this;
@@ -29,7 +29,7 @@ namespace OctopusServer
             m_version_tbx.Text = DataManager.Version;
         }
 
-        internal static void Log(string msg)
+        public static void Log(string msg)
         {
             s_singleton.Invoke(new Action(delegate {
                 if (s_singleton.m_information_listbox.Items.Count > 200)

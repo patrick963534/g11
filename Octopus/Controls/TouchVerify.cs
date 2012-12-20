@@ -9,7 +9,7 @@ using System.IO;
 
 namespace Octopus.Base
 {
-    internal partial class TouchVerify : Form
+    public partial class TouchVerify : Form
     {
         private static TouchVerify m_singleton;
         private static Color m_keycolor = Color.Gray;
@@ -24,7 +24,7 @@ namespace Octopus.Base
             m_singleton = new TouchVerify();
         }
 
-        internal TouchVerify()
+        public TouchVerify()
         {
             InitializeComponent();
 
@@ -37,7 +37,7 @@ namespace Octopus.Base
                 m_touch_tip = Image.FromFile(m_touch_tip_file);
         }
 
-        internal static bool Tell(string msg)
+        public static bool Tell(string msg)
         {
             if (m_singleton.Visible)
                 return false;

@@ -46,11 +46,11 @@ namespace Octopus
         }
     }
 
-    internal class HideOnStartupApplicationContext : ApplicationContext
+    public class HideOnStartupApplicationContext : ApplicationContext
     {
         private Form form;
 
-        internal HideOnStartupApplicationContext(Form mainForm)
+        public HideOnStartupApplicationContext(Form mainForm)
         {
             this.form = mainForm;
         }

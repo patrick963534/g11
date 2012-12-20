@@ -16,9 +16,9 @@ namespace Octopus.Commands
         AddUser,
     }
 
-    internal abstract class Cmd
+    public abstract class Cmd
     {
-        internal void Execute()
+        public void Execute()
         {
             ExecuteImpl();
         }
@@ -26,13 +26,13 @@ namespace Octopus.Commands
         protected abstract void ExecuteImpl();
     }
 
-    internal class NP_RemoveProcessedPackageCmd : Cmd
+    public class NP_RemoveProcessedPackageCmd : Cmd
     {
         private int m_packageID;
 
-        public NP_RemoveProcessedPackageCmd(int packageID)
+        public NP_RemoveProcessedPackageCmd(byte[] data)
         {
-            m_packageID = packageID;
+            m_packageID = BitConverter.ToInt32(data, 0);
         }
 
         protected override void ExecuteImpl()
@@ -41,7 +41,7 @@ namespace Octopus.Commands
         }
     }
 
-    internal class NP_AppendTextMessageCmd : Cmd
+    public class NP_AppendTextMessageCmd : Cmd
     {
         private string m_text;
         private UserInfo m_user;
@@ -54,14 +54,14 @@ namespace Octopus.Commands
 
         protected override void ExecuteImpl()
         {
-            m_user.AppendMessage(m_text);
-            Workbench.Log("Add message:" + m_text);
+            m_user.AppendMessage(m_user.Username, m_text);
+            Logger.WriteLine("Add message:" + m_text);
             if (m_user.Chatter == null)
-                Workbench.Log("Chatter is null.");
+                Logger.WriteLine("Chatter is null.");
         }
     }
 
-    internal class NP_BroadcastFindUserCmd : Cmd
+    public class NP_BroadcastFindUserCmd : Cmd
     {
         private string m_hostname;
         private IPEndPoint m_remoteIP;
@@ -79,7 +79,7 @@ namespace Octopus.Commands
         }
     }
 
-    internal class NP_AddUserCmd : Cmd
+    public class NP_AddUserCmd : Cmd
     {
         private IPEndPoint m_remoteIP;
         private string m_hostname;

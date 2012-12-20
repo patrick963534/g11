@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace OctopusServer.Properties {
+namespace Octopus.Properties {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace OctopusServer.Properties {
         public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("OctopusServer.Properties.Resources", typeof(Resources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Octopus.Properties.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -57,6 +57,20 @@ namespace OctopusServer.Properties {
             }
             set {
                 resourceCulture = value;
+            }
+        }
+        
+        public static System.Drawing.Icon astah {
+            get {
+                object obj = ResourceManager.GetObject("astah", resourceCulture);
+                return ((System.Drawing.Icon)(obj));
+            }
+        }
+        
+        public static System.Drawing.Icon tray_blank {
+            get {
+                object obj = ResourceManager.GetObject("tray_blank", resourceCulture);
+                return ((System.Drawing.Icon)(obj));
             }
         }
     }

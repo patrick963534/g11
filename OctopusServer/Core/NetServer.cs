@@ -8,7 +8,7 @@ using System.Net;
 
 namespace OctopusServer.Core
 {
-    internal class NetServer
+    public class NetServer
     {
         private static NetServer s_singleton;
 
@@ -20,7 +20,7 @@ namespace OctopusServer.Core
             s_singleton = new NetServer();
         }
 
-        internal static void Start()
+        public static void Start()
         {
             s_singleton.socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             s_singleton.socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Broadcast, 1);
@@ -84,12 +84,12 @@ namespace OctopusServer.Core
 
         private class ClientInfo
         {
-            internal string Command;
-            internal int Port;
-            internal string Version;
-            internal string Path;
+            public string Command;
+            public int Port;
+            public string Version;
+            public string Path;
 
-            internal static ClientInfo Create(byte[] bytes)
+            public static ClientInfo Create(byte[] bytes)
             {
                 ClientInfo info = new ClientInfo();
                 string[] subs = Helper.BytesToString(bytes).Split(';');

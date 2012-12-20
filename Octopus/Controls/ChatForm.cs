@@ -8,12 +8,17 @@ using System.Windows.Forms;
 using Octopus.Net;
 using System.Net;
 using Octopus.Core;
+using System.Runtime.InteropServices;
 
 namespace Octopus.Controls
 {
-    internal partial class ChatForm : Form
+    public partial class ChatForm : Form
     {
+        [DllImport("user32.dll")]
+        public static extern bool FlashWindow(IntPtr hWnd, bool bInvert);   
+
         private UserInfo m_userinfo;
+        private bool m_isActive;
 
         public ChatForm(UserInfo userinfo)
         {
@@ -24,6 +29,8 @@ namespace Octopus.Controls
             m_userinfo = userinfo;
             m_msg_input_tbx.Focus();
 
+            this.Text = string.Format("聊天对象: {0}", userinfo.Username);
+
             ShowMessage();
         }
 
@@ -32,6 +39,14 @@ namespace Octopus.Controls
             this.Invoke(new DoAction(delegate
             {
                 m_msg_show_tbx.Text = m_userinfo.Messages;
+
+                m_msg_show_tbx.SelectionStart = m_msg_show_tbx.Text.Length;
+                m_msg_show_tbx.ScrollToCaret();
+
+                if (!m_isActive)
+                {
+                    FlashWindow(this.Handle, true); 
+                }
             }));
         }
 
@@ -43,7 +58,7 @@ namespace Octopus.Controls
                 if (string.IsNullOrEmpty(msg))
                     return;
 
-                m_userinfo.AppendMessage(msg);
+                m_userinfo.AppendMessage(DataManager.WhoAmI, msg);
                 OutgoingPackagePool.Add(NetPackageGenerater.AppendTextMessage(msg, m_userinfo.RemoteIP));
                 m_msg_input_tbx.Text = string.Empty;
                 e.Handled = true;
@@ -54,6 +69,18 @@ namespace Octopus.Controls
         private void ChatForm_FormClosed(object sender, FormClosedEventArgs e)
         {
             m_userinfo.Chatter = null;
+        }
+
+        protected override void OnDeactivate(EventArgs e)
+        {
+            m_isActive = false;
+            base.OnDeactivate(e);
+        }
+
+        protected override void OnActivated(EventArgs e)
+        {
+            m_isActive = true;
+            base.OnActivated(e);
         }
     }
 }

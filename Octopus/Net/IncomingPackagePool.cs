@@ -9,7 +9,7 @@ using Octopus.Core;
 
 namespace Octopus.Net
 {
-    internal class IncomingPackagePool
+    public class IncomingPackagePool
     {
         private static IncomingPackagePool s_singleton = new IncomingPackagePool();
         private static byte[] buffer = new byte[102400];
@@ -19,7 +19,7 @@ namespace Octopus.Net
         static IncomingPackagePool()
         { }
 
-        internal static bool Receive(Socket socket)
+        public static bool Receive(Socket socket)
         {
             if (socket.Available <= 0)
                 return false;
@@ -38,7 +38,7 @@ namespace Octopus.Net
             }
             catch (Exception e)
             {
-                Workbench.Log(e.Message);
+                Logger.WriteLine(e.Message);
             }
             
             return false;
@@ -79,7 +79,7 @@ namespace Octopus.Net
                 if (package == null)
                     return;
 
-                if (package.CommandID != (int)NetCommandType.RemoveProcessedPackage)
+                if (!package.IsRemoveProcessedPackageType)
                     OutgoingPackagePool.AddFirst(NetPackageGenerater.TellReceived(package.ID, package.RemoteEP));
 
                 Content content = null;
@@ -102,13 +102,16 @@ namespace Octopus.Net
                     byte[] data = content.CombineData();
                     UserInfo user = UserInfoManager.FindUser(RemoteEP);
 
+                    Logger.CounterCommand_Recv(content.CommandType);
+                    Logger.WriteLine("Recv Command: " + content.CommandType.ToString());
+
                     switch (content.CommandType)
                     {
                         case NetCommandType.AppendTextMessage: 
                             cmd = new NP_AppendTextMessageCmd(data, user); 
                             break;
                         case NetCommandType.RemoveProcessedPackage: 
-                            cmd = new NP_RemoveProcessedPackageCmd(package.ID); 
+                            cmd = new NP_RemoveProcessedPackageCmd(data); 
                             break;
                         case NetCommandType.BroadcastFindUser:
                             cmd = new NP_BroadcastFindUserCmd(data, RemoteEP);

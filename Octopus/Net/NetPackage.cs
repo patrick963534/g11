@@ -4,14 +4,16 @@ using System.Text;
 using System.Net;
 using System.IO;
 using Octopus.Commands;
+using Octopus.Core;
 
 namespace Octopus.Net
 {
-    internal class NetPackage
+    public class NetPackage
     {
         public static int MagicNumber = 0x13572468;
         public static int CounterPackageID = 1;
         public static int CounterContentID = 1;
+        private static object m_lockobject = new object();
 
         public byte[] Buffer;
         public int ID;
@@ -24,12 +26,23 @@ namespace Octopus.Net
 
         public static int GeneratePackageID()
         {
-            return CounterPackageID++;
+            lock (m_lockobject)
+            {
+                return CounterPackageID++;
+            }
         }
 
         public static int GenerateContentID()
         {
-            return CounterContentID++;
+            lock (m_lockobject)
+            {
+                return CounterContentID++;
+            }
+        }
+
+        public bool IsRemoveProcessedPackageType
+        {
+            get { return (CommandID == (int)NetCommandType.RemoveProcessedPackage); }
         }
 
         public static NetPackage Parse(byte[] buffer, int sz, IPEndPoint ep)
@@ -96,19 +109,19 @@ namespace Octopus.Net
         }
     }
 
-    internal class NetPackageGenerater
+    public class NetPackageGenerater
     {
         public static NetPackage BroadcastFindUser()
         {
             IPEndPoint iep = new IPEndPoint(IPAddress.Broadcast, NetService.ListenPort);
-            byte[] data = Encoding.UTF8.GetBytes(Dns.GetHostName());
+            byte[] data = Encoding.UTF8.GetBytes(DataManager.WhoAmI);
             int contentID = NetPackage.GenerateContentID();
             return NetPackage.Create(contentID, 1, (int)NetCommandType.BroadcastFindUser, 1, data, iep);
         }
 
         public static NetPackage AddUser(IPEndPoint iep)
         {
-            byte[] data = Encoding.UTF8.GetBytes(Dns.GetHostName());
+            byte[] data = Encoding.UTF8.GetBytes(DataManager.WhoAmI);
             int contentID = NetPackage.GenerateContentID();
             return NetPackage.Create(contentID, 1, (int)NetCommandType.AddUser, 1, data, iep);
         }

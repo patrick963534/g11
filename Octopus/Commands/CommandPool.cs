@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Octopus.Commands
 {
-    internal class CommandPool
+    public class CommandPool
     {
         private static CommandPool s_singleton;
         private static object lock_obj = new object();
@@ -16,17 +16,7 @@ namespace Octopus.Commands
             s_singleton = new CommandPool();
         }
 
-        internal static void ExecuteAll()
-        {
-            Cmd cmd = CommandPool.EndQueue();
-            while (cmd != null)
-            {
-                cmd.Execute();
-                cmd = CommandPool.EndQueue();
-            }
-        }
-
-        internal static void AddCommand(Cmd cmd)
+        public static void AddCommand(Cmd cmd)
         {
             if (cmd == null)
                 return;
@@ -37,7 +27,7 @@ namespace Octopus.Commands
             }            
         }
 
-        internal static Cmd EndQueue()
+        public static Cmd EndQueue()
         {
             lock (lock_obj)
             {

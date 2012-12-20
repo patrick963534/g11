@@ -5,9 +5,9 @@ using System.IO;
 
 namespace OctopusServer.Core
 {
-    internal class Helper
+    public class Helper
     {
-        internal static string BytesToString(byte[] bytes)
+        public static string BytesToString(byte[] bytes)
         {
             MemoryStream ms = new MemoryStream(bytes);
             StreamReader r = new StreamReader(ms);
@@ -16,7 +16,7 @@ namespace OctopusServer.Core
             return s;
         }
 
-        internal static byte[] StringToBytes(string val)
+        public static byte[] StringToBytes(string val)
         {
             MemoryStream ms = new MemoryStream();
             StreamWriter w = new StreamWriter(ms);
@@ -29,7 +29,7 @@ namespace OctopusServer.Core
             return bytes;
         }
 
-        internal static byte[] IntToBytes(int val)
+        public static byte[] IntToBytes(int val)
         {
             MemoryStream ms = new MemoryStream();
             BinaryWriter w = new BinaryWriter(ms);

@@ -9,7 +9,7 @@ using System.Diagnostics;
 
 namespace Octopus.Core
 {
-    internal class NetClient
+    public class NetClient
     {
         private static NetClient s_singleton;
 
@@ -26,7 +26,7 @@ namespace Octopus.Core
             s_singleton = new NetClient();
         }
 
-        internal static void Start()
+        public static void Start()
         {
             s_singleton.broadcast_socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             s_singleton.data_socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
@@ -47,7 +47,7 @@ namespace Octopus.Core
             s_singleton.data_thread.Start();
         }
 
-        internal static void Stop()
+        public static void Stop()
         {
             try
             {
@@ -103,7 +103,7 @@ namespace Octopus.Core
                 }
                 catch
                 {
-                    Workbench.Log("fail to update... -_-");
+                    Logger.WriteLine("fail to update... -_-");
                     Thread.Sleep(1000 * 1000);
                 }
             }
@@ -133,7 +133,7 @@ namespace Octopus.Core
                 }
                 catch
                 {
-                    Workbench.Log("fail to broadcast... -_-");
+                    Logger.WriteLine("fail to broadcast... -_-");
                     Thread.Sleep(1000 * 1000);
                 }
             }

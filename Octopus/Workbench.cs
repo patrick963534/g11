@@ -13,15 +13,16 @@ using System.Net;
 
 namespace Octopus
 {
-    internal delegate void DoAction();
+    public delegate void DoAction();
 
-    internal partial class Workbench : Form
+    public partial class Workbench : Form
     {
         private static Workbench s_singleton;
 
         private bool m_really_close;
+        private TrayFlashTimer m_trayFlashTimer;
 
-        internal Workbench()
+        public Workbench()
         {
             InitializeComponent();
             s_singleton = this;
@@ -29,40 +30,34 @@ namespace Octopus
             // Call the Show() method to force create Window Handler in the insternal.
             // Otherwise we can't use Invoke() method.
             this.Show();
+
+            m_trayFlashTimer = new TrayFlashTimer(m_tray);
             
             TouchVerifyCore.Start();
             NetService.Start();
 
-            Workbench.Log(DataManager.Version);
+            Logger.WriteLine(DataManager.Version);
         }
 
-        internal static void HideIt()
-        {
-            s_singleton.Hide();
-        }
-
-        internal static void Log(string msg)
+        public static void NotifyUpdateLog()
         {
             s_singleton.Invoke(new DoAction(delegate
             {
-                if (!string.IsNullOrEmpty(s_singleton.m_msg_show_tbx.Text))
-                    s_singleton.m_msg_show_tbx.Text += "\r\n";
-
-                s_singleton.m_msg_show_tbx.Text += msg;
+                LogViewer.UpdateMsg();
             }));
         }
 
-        internal static void DoAction(DoAction action)
+        public static void DoAction(DoAction action)
         {
             s_singleton.Invoke(action);
         }
 
-        internal static void AddClient(string name, IPEndPoint remoteIP)
+        public static void AddClient(string name, IPEndPoint remoteIP)
         {
             if (UserInfoManager.FindUser(remoteIP) != null)
                 return;
 
-            if (name == Dns.GetHostName())
+            if (name == DataManager.WhoAmI)
                 return;
 
             s_singleton.Invoke(new DoAction(delegate
@@ -70,15 +65,16 @@ namespace Octopus
                 IPAddress addr = remoteIP.Address;
                 int port = remoteIP.Port;
 
-                Workbench.Log(string.Format("Add User: {0}, IP: {1}", name, remoteIP));
+                Logger.WriteLine(string.Format("Add User: {0}, IP: {1}", name, remoteIP));
 
                 UserInfo user = new UserInfo(new IPEndPoint(addr, port), name);
                 UserInfoManager.AddUser(user);
-                s_singleton.m_users_list.Items.Add(user);
+
+                s_singleton.m_users.AddUser(user);
             }));
         }
 
-        internal static void ExitForm()
+        public static void ExitForm()
         {
             s_singleton.Invoke(new DoAction(delegate
             {
@@ -93,15 +89,23 @@ namespace Octopus
         private void m_tray_Click(object sender, EventArgs e)
         {
             MouseEventArgs mouse_e = (MouseEventArgs)e;
-
+            
             if (mouse_e.Button == MouseButtons.Left)
             {
-                s_singleton.Show();
-                s_singleton.Activate();
+                if (m_trayFlashTimer.FlashingUser == null)
+                {
+                    s_singleton.Show();
+                    s_singleton.Activate();
+                }
+                else
+                {
+                    m_trayFlashTimer.FlashingUser.ShowChatter();
+                }                
             }
             else if (mouse_e.Button == MouseButtons.Right)
             {
-                //if (MessageBox.Show("是否退出八爪鱼?", "Octopus", MessageBoxButtons.YesNo) == DialogResult.Yes)
+                s_singleton.Activate();
+                if (MessageBox.Show("是否退出八爪鱼?", "Octopus", MessageBoxButtons.YesNo) == DialogResult.Yes)
                 {
                     ExitForm();
                 }
@@ -117,19 +121,68 @@ namespace Octopus
             }
         }
 
-        private void m_users_list_DoubleClick(object sender, EventArgs e)
-        {
-            UserInfo user = (UserInfo)m_users_list.SelectedItem;
-
-            if (user.Chatter == null)
-                user.Chatter = new ChatForm(user);
-
-            user.Chatter.Show();
-        }
-
         private void m_add_client_btn_Click(object sender, EventArgs e)
         {
             OutgoingPackagePool.AddFirst(NetPackageGenerater.BroadcastFindUser());
+        }
+
+        private void m_logger_btn_Click(object sender, EventArgs e)
+        {
+            LogViewer.MakeValid();
+            NotifyUpdateLog();
+        }
+
+        private class TrayFlashTimer
+        {
+            private Timer m_timer;
+            private NotifyIcon m_tray;
+            private bool m_state;
+            private UserInfo m_flashingUser;
+
+            public TrayFlashTimer(NotifyIcon tray)
+            {
+                m_timer = new Timer();
+                m_timer.Interval = 500;
+                m_timer.Tick += new EventHandler(m_timer_Tick);
+                m_timer.Start();
+
+                m_tray = tray;
+            }
+
+            public UserInfo FlashingUser
+            {
+                get { return m_flashingUser; }
+            }
+
+            void m_timer_Tick(object sender, EventArgs e)
+            {
+                m_timer.Start();
+
+                if (m_flashingUser != null && !m_flashingUser.IsReceiveNewMessage)
+                {
+                    m_flashingUser = null;
+                }
+
+                if (m_flashingUser == null)
+                {
+                    m_flashingUser = UserInfoManager.FindUserWhichHaveNewMessage();
+                }
+                
+                if (m_flashingUser == null)
+                {
+                    m_tray.Icon = IconManager.Tray_Normal;
+                    return;
+                }
+                else
+                {
+                    m_state = !m_state;
+
+                    if (m_state)
+                        m_tray.Icon = IconManager.Tray_Normal;
+                    else
+                        m_tray.Icon = IconManager.Tray_Blank;
+                }
+            }
         }
     }
 }

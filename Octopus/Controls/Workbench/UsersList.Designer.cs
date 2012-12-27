@@ -1,4 +1,4 @@
-﻿namespace Octopus.Controls.Workbench
+﻿namespace Octopus.Controls
 {
     partial class UsersList
     {
@@ -43,6 +43,7 @@
             this.m_users_list.Size = new System.Drawing.Size(178, 400);
             this.m_users_list.TabIndex = 0;
             this.m_users_list.DoubleClick += new System.EventHandler(this.m_users_list_DoubleClick);
+            this.m_users_list.MouseDown += new System.Windows.Forms.MouseEventHandler(this.m_users_list_MouseDown);
             // 
             // UsersList
             // 

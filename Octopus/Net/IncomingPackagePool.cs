@@ -32,6 +32,7 @@ namespace Octopus.Net
                 int len = socket.ReceiveFrom(buffer, ref ep);
                 if (len != 0)
                 {
+                    Logger.Counter_Pkg_Recv();
                     s_singleton.AddPackage(NetPackage.Parse(buffer, len, (IPEndPoint)ep));
                     return true;
                 }
@@ -49,7 +50,10 @@ namespace Octopus.Net
             if (package == null)
                 return;
 
-            string key = UserInfo.ParseIPEndpoint(package.RemoteEP);
+            if (!package.IsRemoveProcessedPackageType)
+                OutgoingPackagePool.AddFirst(NetPackageGenerater.TellReceived(package.ID, package.RemoteEP));
+
+            string key = UserInfo.ToUserToken(package.RemoteEP);
             Sender sender = null;
             if (m_senders.ContainsKey(key))
             {
@@ -68,6 +72,7 @@ namespace Octopus.Net
         {
             public IPEndPoint RemoteEP;
             private Dictionary<int, Content> m_contents = new Dictionary<int, Content>();
+            private Dictionary<int, int> m_pkg_ids = new Dictionary<int, int>();
 
             public Sender(IPEndPoint remoteEP)
             {
@@ -79,8 +84,10 @@ namespace Octopus.Net
                 if (package == null)
                     return;
 
-                if (!package.IsRemoveProcessedPackageType)
-                    OutgoingPackagePool.AddFirst(NetPackageGenerater.TellReceived(package.ID, package.RemoteEP));
+                if (m_pkg_ids.ContainsKey(package.ID))
+                    return;
+
+                m_pkg_ids.Add(package.ID, package.ID);
 
                 Content content = null;
 
@@ -100,24 +107,35 @@ namespace Octopus.Net
                 {
                     Cmd cmd = null;
                     byte[] data = content.CombineData();
-                    UserInfo user = UserInfoManager.FindUser(RemoteEP);
 
                     Logger.CounterCommand_Recv(content.CommandType);
                     Logger.WriteLine("Recv Command: " + content.CommandType.ToString());
 
                     switch (content.CommandType)
                     {
-                        case NetCommandType.AppendTextMessage: 
-                            cmd = new NP_AppendTextMessageCmd(data, user); 
+                        case NetCommandType.AppendTextMessage:
+                            cmd = new NP_AppendTextMessageCmd(data, RemoteEP); 
                             break;
                         case NetCommandType.RemoveProcessedPackage: 
-                            cmd = new NP_RemoveProcessedPackageCmd(data); 
+                            cmd = new NP_RemoveProcessedPackageCmd(data, RemoteEP); 
                             break;
                         case NetCommandType.BroadcastFindUser:
                             cmd = new NP_BroadcastFindUserCmd(data, RemoteEP);
                             break;
                         case NetCommandType.AddUser:
                             cmd = new NP_AddUserCmd(data, RemoteEP);
+                            break;
+                        case NetCommandType.FindGroupUser:
+                            cmd = new NP_FindGroupUserCmd(data, RemoteEP);
+                            break;
+                        case NetCommandType.AddGroupUser:
+                            cmd = new NP_AddGroupUserCmd(data, RemoteEP);
+                            break;
+                        case NetCommandType.AppendGroupTextMessage:
+                            cmd = new NP_AppendGroupTextMessageCmd(data, RemoteEP);
+                            break;
+                        case NetCommandType.CreateNewGroup:
+                            cmd = new NP_CreateNewGroupCmd(data, RemoteEP);
                             break;
                         
                         default: break;
@@ -193,11 +211,11 @@ namespace Octopus.Net
                 public int Compare(NetPackage x, NetPackage y)
                 {
                     if (x.OrderID < y.OrderID)
-                        return 1;
+                        return -1;
                     else if (x.OrderID == y.OrderID)
                         return 0;
                     else
-                        return -1;
+                        return 1;
                 }
 
                 #endregion

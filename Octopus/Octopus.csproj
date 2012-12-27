@@ -66,11 +66,23 @@
     <Compile Include="Controls\ChatForm.Designer.cs">
       <DependentUpon>ChatForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="Controls\CreateGroupForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Controls\CreateGroupForm.Designer.cs">
+      <DependentUpon>CreateGroupForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="Controls\GroupChatterForm.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Controls\GroupChatterForm.Designer.cs">
       <DependentUpon>GroupChatterForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\GroupSelectionForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Controls\GroupSelectionForm.Designer.cs">
+      <DependentUpon>GroupSelectionForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Controls\LogViewer.cs">
       <SubType>Form</SubType>
@@ -97,6 +109,7 @@
       <DependentUpon>UsersList.cs</DependentUpon>
     </Compile>
     <Compile Include="Core\DataManager.cs" />
+    <Compile Include="Core\GroupConfig.cs" />
     <Compile Include="Core\GroupInfo.cs" />
     <Compile Include="Core\Helper.cs" />
     <Compile Include="Core\IconManager.cs" />
@@ -124,6 +137,15 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Controls\ChatForm.resx">
       <DependentUpon>ChatForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Controls\CreateGroupForm.resx">
+      <DependentUpon>CreateGroupForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Controls\GroupChatterForm.resx">
+      <DependentUpon>GroupChatterForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Controls\GroupSelectionForm.resx">
+      <DependentUpon>GroupSelectionForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Controls\LogViewer.resx">
       <DependentUpon>LogViewer.cs</DependentUpon>

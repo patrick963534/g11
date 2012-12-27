@@ -77,7 +77,7 @@ namespace Octopus.Core
                     if (rcv_length != 4)
                         continue;
 
-                    int sz = Helper.BytesToInt(buffer);
+                    int sz = Helper.GetInt(buffer);
                     if (sz < 0 && sz >= 10 * 1024 * 1024)
                         continue;
 
@@ -125,7 +125,7 @@ namespace Octopus.Core
                     if (socket != null)
                     {
                         IPEndPoint groupEP = new IPEndPoint(IPAddress.Broadcast, 31937);
-                        byte[] info_bytes = Helper.StringToBytes("Octopus_Update;" + s_singleton.data_port.ToString() + ";" + DataManager.AppPath + ";" + DataManager.Version);
+                        byte[] info_bytes = Helper.GetBytes("Octopus_Update;" + s_singleton.data_port.ToString() + ";" + DataManager.AppPath + ";" + DataManager.Version);
                         socket.SendTo(info_bytes, groupEP);
                     }
 

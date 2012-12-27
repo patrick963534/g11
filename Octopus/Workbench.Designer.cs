@@ -36,9 +36,9 @@ namespace Octopus
             this.m_logger_btn = new System.Windows.Forms.Button();
             this.m_tabs = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
-            this.m_users = new Octopus.Controls.Workbench.UsersList();
+            this.m_users = new Octopus.Controls.UsersList();
             this.tabPage2 = new System.Windows.Forms.TabPage();
-            this.m_groups = new Octopus.Controls.Workbench.GroupList();
+            this.m_groups = new Octopus.Controls.GroupList();
             this.m_tabs.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -99,6 +99,9 @@ namespace Octopus
             // 
             // m_users
             // 
+            this.m_users.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+                        | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
             this.m_users.Location = new System.Drawing.Point(6, 6);
             this.m_users.Name = "m_users";
             this.m_users.Size = new System.Drawing.Size(159, 309);
@@ -135,7 +138,9 @@ namespace Octopus
             this.MinimizeBox = false;
             this.Name = "Workbench";
             this.ShowInTaskbar = false;
+            this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
             this.Text = "Octopus";
+            this.Load += new System.EventHandler(this.Workbench_Load);
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Workbench_FormClosing);
             this.m_tabs.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
@@ -152,8 +157,8 @@ namespace Octopus
         private System.Windows.Forms.TabControl m_tabs;
         private System.Windows.Forms.TabPage tabPage1;
         private System.Windows.Forms.TabPage tabPage2;
-        private Octopus.Controls.Workbench.GroupList m_groups;
-        private Octopus.Controls.Workbench.UsersList m_users;
+        private Octopus.Controls.GroupList m_groups;
+        private Octopus.Controls.UsersList m_users;
 
 
     }

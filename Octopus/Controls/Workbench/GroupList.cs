@@ -5,22 +5,48 @@ using System.Drawing;
 using System.Data;
 using System.Text;
 using System.Windows.Forms;
+using Octopus.Core;
 
-namespace Octopus.Controls.Workbench
+namespace Octopus.Controls
 {
     public partial class GroupList : UserControl
     {
         public GroupList()
         {
             InitializeComponent();
+
+            GroupConfig.Load();
+            m_list.Items.AddRange(GroupInfoManager.GetGroupArray());
         }
 
         private void m_list_MouseDown(object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Right)
             {
-                this.ContextMenuStrip = new GroupListBoxContextMenu();
+                if (m_list.SelectedItem == null)
+                    this.ContextMenuStrip = new GroupListBoxContextMenu();
+                else
+                    this.ContextMenuStrip = new ItemContextMenu((GroupInfo)m_list.SelectedItem);
             }
+        }
+
+        public void DeleteGroup(GroupInfo gi)
+        {
+            m_list.Items.Remove(gi);
+        }
+
+        public void AddGroup(GroupInfo gi)
+        {
+            m_list.Items.Add(gi);
+        }
+
+        private void m_list_DoubleClick(object sender, EventArgs e)
+        {
+            GroupInfo gi = (GroupInfo)m_list.SelectedItem;
+            if (gi == null)
+                return;
+
+            gi.ShowChatter();
         }
 
         private class GroupListBoxContextMenu : ContextMenuStrip
@@ -36,6 +62,13 @@ namespace Octopus.Controls.Workbench
                 switch (e.ClickedItem.Text)
                 {
                     case "CreateGroup":
+                        CreateGroupForm dlg = new CreateGroupForm();
+                        dlg.StartPosition = FormStartPosition.CenterParent;
+                        if (dlg.ShowDialog() == DialogResult.OK)
+                        {
+                            GroupInfo info = GroupInfo.Create(dlg.GroupName);
+                            Workbench.AddGroup(info.Key, info.Name);
+                        }
                         break;
                 }
             }
@@ -43,18 +76,22 @@ namespace Octopus.Controls.Workbench
 
         private class ItemContextMenu : ContextMenuStrip
         {
-            public ItemContextMenu()
+            private GroupInfo m_group;
+
+            public ItemContextMenu(GroupInfo group)
             {
+                m_group = group;
+
                 this.Items.Add("QuitGroup");
                 this.ItemClicked += new ToolStripItemClickedEventHandler(ItemContextMenu_ItemClicked);
             }
 
             void ItemContextMenu_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
             {
-
                 switch (e.ClickedItem.Text)
                 {
                     case "QuitGroup":
+                        Workbench.QuitGroup(m_group);
                         break;
                 }
             }

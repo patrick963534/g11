@@ -12,6 +12,7 @@ namespace Octopus.Core
 
         private static string s_msg = string.Empty;
         private static int msg_counter = 0;
+        private static int pkg_counter = 0;
 
         private static Dictionary<NetCommandType, int> m_cmdCounter_recv = new Dictionary<NetCommandType, int>();
         private static Dictionary<NetCommandType, int> m_cmdCounter_send = new Dictionary<NetCommandType, int>();
@@ -19,6 +20,14 @@ namespace Octopus.Core
         public static string Msg
         {
             get { return s_msg; }
+        }
+
+        public static void Counter_Pkg_Recv()
+        {
+            lock (s_lockobject)
+            {
+                pkg_counter++;
+            }
         }
 
         public static void CounterCommand_Recv(NetCommandType cmd)
@@ -48,6 +57,13 @@ namespace Octopus.Core
                 {
                     m_cmdCounter_send[cmd]++;
                 }
+            }
+        }
+        public static string Get_Recv_Part_Packages()
+        {
+            lock (s_lockobject)
+            {
+                return string.Format("Recv part packages : {0} \r\n", pkg_counter);
             }
         }
 

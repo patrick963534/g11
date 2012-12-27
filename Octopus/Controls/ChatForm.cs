@@ -26,6 +26,7 @@ namespace Octopus.Controls
 
             Show();
 
+            StartPosition = FormStartPosition.CenterScreen;
             m_userinfo = userinfo;
             m_msg_input_tbx.Focus();
 
@@ -52,17 +53,23 @@ namespace Octopus.Controls
 
         private void m_msg_input_tbx_KeyDown(object sender, KeyEventArgs e)
         {
-            if (e.Control && e.KeyCode == Keys.Enter)
+            if (!e.Control && e.KeyCode == Keys.Enter)
             {
                 string msg = m_msg_input_tbx.Text.Trim();
                 if (string.IsNullOrEmpty(msg))
                     return;
 
-                m_userinfo.AppendMessage(DataManager.WhoAmI, msg);
+                msg = Helper.FormatMessage(DataManager.WhoAmI, msg);
+                m_userinfo.AppendMessage(msg);
+
                 OutgoingPackagePool.Add(NetPackageGenerater.AppendTextMessage(msg, m_userinfo.RemoteIP));
                 m_msg_input_tbx.Text = string.Empty;
                 e.Handled = true;
                 e.SuppressKeyPress = true;
+            }
+            else if (e.Alt && e.KeyCode == Keys.C)
+            {
+                Close();
             }
         }
 

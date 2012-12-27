@@ -17,7 +17,7 @@ namespace Octopus.Net
 
         public byte[] Buffer;
         public int ID;
-        public int CommandID;
+        public NetCommandType CommandID;
         public int ContentID;
         public int OrderID;
         public int PackageCount;
@@ -42,7 +42,7 @@ namespace Octopus.Net
 
         public bool IsRemoveProcessedPackageType
         {
-            get { return (CommandID == (int)NetCommandType.RemoveProcessedPackage); }
+            get { return (CommandID == NetCommandType.RemoveProcessedPackage); }
         }
 
         public static NetPackage Parse(byte[] buffer, int sz, IPEndPoint ep)
@@ -61,7 +61,7 @@ namespace Octopus.Net
 
                 if (package.OrderID == 1)
                 {
-                    package.CommandID = br.ReadInt32();
+                    package.CommandID = (NetCommandType)br.ReadInt32();
                     package.PackageCount = br.ReadInt32();
                 }
 
@@ -72,7 +72,7 @@ namespace Octopus.Net
             }
         }
 
-        public static NetPackage Create(int contentID, int orderID, int commandID, int packageCount, byte[] data, IPEndPoint iep)
+        public static NetPackage Create(int contentID, int orderID, NetCommandType commandID, int packageCount, byte[] data, IPEndPoint iep)
         {
             using (BinaryWriter bw = new BinaryWriter(new MemoryStream()))
             {
@@ -85,7 +85,7 @@ namespace Octopus.Net
 
                 if (orderID == 1)
                 {
-                    bw.Write(commandID);
+                    bw.Write((int)commandID);
                     bw.Write(packageCount);
                 }
 
@@ -107,37 +107,99 @@ namespace Octopus.Net
                 return package;
             }
         }
+
+        public static NetPackage[] ContentCreate(NetCommandType commandID, byte[] data, IPEndPoint iep)
+        {
+            int contentID = NetPackage.GenerateContentID();
+
+            int max_pkg_sz = 384;
+            int offset = 0;
+            int order = 1;
+            int count = (data.Length + max_pkg_sz - 1) / max_pkg_sz;
+            NetPackage[] packages = new NetPackage[count];
+
+            int length = data.Length;
+            while (length != 0)
+            {
+                int sz = Math.Min(384, length);
+                byte[] buf = new MemoryStream(data, offset, sz).ToArray();
+                packages[order - 1] = (NetPackage.Create(contentID, order, commandID, count, buf, iep));
+
+                order++;
+                offset += sz;
+                length -= sz;
+            }
+
+            return packages;
+        }
     }
 
     public class NetPackageGenerater
     {
-        public static NetPackage BroadcastFindUser()
+        public static NetPackage[] BroadcastFindUser()
         {
             IPEndPoint iep = new IPEndPoint(IPAddress.Broadcast, NetService.ListenPort);
             byte[] data = Encoding.UTF8.GetBytes(DataManager.WhoAmI);
-            int contentID = NetPackage.GenerateContentID();
-            return NetPackage.Create(contentID, 1, (int)NetCommandType.BroadcastFindUser, 1, data, iep);
+            return NetPackage.ContentCreate(NetCommandType.BroadcastFindUser, data, iep);
         }
 
-        public static NetPackage AddUser(IPEndPoint iep)
+        public static NetPackage[] AddUser(IPEndPoint iep)
         {
-            byte[] data = Encoding.UTF8.GetBytes(DataManager.WhoAmI);
-            int contentID = NetPackage.GenerateContentID();
-            return NetPackage.Create(contentID, 1, (int)NetCommandType.AddUser, 1, data, iep);
+            return NetPackage.ContentCreate(NetCommandType.AddUser, Helper.GetBytes(DataManager.WhoAmI), iep);
         }
 
-        public static NetPackage AppendTextMessage(string msg, IPEndPoint iep)
+        public static NetPackage[] AppendTextMessage(string msg, IPEndPoint iep)
         {
-            byte[] data = Encoding.UTF8.GetBytes(msg);
-            int contentID = NetPackage.GenerateContentID();
-            return NetPackage.Create(contentID, 1, (int)NetCommandType.AppendTextMessage, 1, data, iep);
+            return NetPackage.ContentCreate(NetCommandType.AppendTextMessage, Helper.GetBytes(msg), iep);
         }
 
-        public static NetPackage TellReceived(int packageID, IPEndPoint iep)
+        public static NetPackage[] TellReceived(int packageID, IPEndPoint iep)
         {
-            byte[] data = BitConverter.GetBytes(packageID);
-            int contentID = NetPackage.GenerateContentID();
-            return NetPackage.Create(contentID, 1, (int)NetCommandType.RemoveProcessedPackage, 1, data, iep);
+            return NetPackage.ContentCreate(NetCommandType.RemoveProcessedPackage, BitConverter.GetBytes(packageID), iep);
+        }
+
+        public static NetPackage[] FindGroupUser(string groupKey, IPEndPoint iep)
+        {
+            return NetPackage.ContentCreate(NetCommandType.FindGroupUser, Helper.GetBytes(groupKey), iep);
+        }
+
+        public static NetPackage[] AddGroupUser(string groupKey, IPEndPoint iep)
+        {
+            return NetPackage.ContentCreate(NetCommandType.AddGroupUser, Helper.GetBytes(groupKey), iep);
+        }
+
+        public static NetPackage[] AppendGroupTextMessage(string groupKey, string msg, IPEndPoint iep)
+        {
+            string val = string.Format("{0};{1}", groupKey, msg);
+            return NetPackage.ContentCreate(NetCommandType.AppendGroupTextMessage, Helper.GetBytes(val), iep);
+        }
+
+        public static NetPackage[] CreateNewGroup(string groupKey, string name, IPEndPoint iep)
+        {
+            string val = groupKey + ";" + name;
+            return NetPackage.ContentCreate(NetCommandType.CreateNewGroup, Helper.GetBytes(val), iep);
+        }
+
+        public static NetPackage[] CheckUserCount(int count, IPEndPoint iep)
+        {
+            return NetPackage.ContentCreate(NetCommandType.CheckUserCount, Helper.GetBytes(count), iep);
+        }
+
+        public static NetPackage[] RefreshUsers(IPEndPoint iep)
+        {
+            string val = "nothing";
+            return NetPackage.ContentCreate(NetCommandType.RefreshUsers, Helper.GetBytes(val), iep);
+        }
+
+        public static NetPackage[] CheckGroupUserCount(string groupKey, int count, IPEndPoint iep)
+        {
+            string val = groupKey + ";" + count;
+            return NetPackage.ContentCreate(NetCommandType.CheckGroupUserCount, Helper.GetBytes(val), iep);
+        }
+
+        public static NetPackage[] RefreshGroupUsers(string groupKey, IPEndPoint iep)
+        {
+            return NetPackage.ContentCreate(NetCommandType.RefreshGroupUsers, Helper.GetBytes(groupKey), iep);
         }
     }
 }

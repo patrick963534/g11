@@ -9,18 +9,93 @@ namespace Octopus.Core
     {
         public string Key;
         public string Name;
+        public string Messages = string.Empty;
         public GroupChatterForm Chatter;
+        public bool IsReceiveNewMessage;
+
+        private Dictionary<string, UserInfo> m_users = new Dictionary<string, UserInfo>();
+
+        private GroupInfo()
+        { }
 
         public GroupInfo(string key, string name)
         {
-
+            Key = key;
+            Name = name;
         }
 
         public static GroupInfo Create(string name)
         {
+            GroupInfo group = new GroupInfo(Guid.NewGuid().ToString(), name);
+            return group;
+        }
 
+        public int GetUserCount()
+        {
+            return m_users.Count;
+        }
 
-            return null;
+        public void QueryGroupUsers()
+        {
+            if (Chatter == null)
+                return;
+
+            Chatter.QueryGroupUsers();
+        }
+
+        public bool ContainsUser(UserInfo user)
+        {
+            return m_users.ContainsKey(user.GetToken());
+        }
+
+        public void AddUser(UserInfo user)
+        {
+            if (m_users.ContainsKey(user.GetToken()))
+                return;
+
+            m_users.Add(user.GetToken(), user);
+
+            if (Chatter != null)
+                Chatter.AddUser(user);
+        }
+
+        public UserInfo[] GetUserArray()
+        {
+            return new List<UserInfo>(m_users.Values).ToArray();
+        }
+
+        public void ShowChatter()
+        {
+            if (Chatter == null)
+                Chatter = new GroupChatterForm(this);
+
+            Chatter.Show();
+            Chatter.Activate();
+
+            IsReceiveNewMessage = false;
+        }
+
+        public void AppendMessage(string msg)
+        {
+            if (!string.IsNullOrEmpty(Messages))
+                Messages += "\r\n";
+
+            Messages += msg;
+
+            if (Chatter != null)
+            {
+                Chatter.ShowMessage();
+                IsReceiveNewMessage = false;
+            }
+            else
+            {
+                IsReceiveNewMessage = true;
+            }
+        }
+
+        public override string ToString()
+        {
+            return Name;
         }
     }
 
@@ -29,11 +104,55 @@ namespace Octopus.Core
         private static object LockObject = new object();
         private static Dictionary<string, GroupInfo> m_groups = new Dictionary<string, GroupInfo>();
 
+        public static GroupInfo FindGroupWhichHaveNewMessage()
+        {
+            lock (LockObject)
+            {
+                foreach (GroupInfo grp in m_groups.Values)
+                {
+                    if (grp.IsReceiveNewMessage)
+                        return grp;
+                }
+
+                return null;
+            }
+        }
+
+        public static void DeleteGroup(GroupInfo group)
+        {
+            lock (LockObject)
+            {
+                if (m_groups.ContainsKey(group.Key))
+                    m_groups.Remove(group.Key);
+            }
+        }
+
         public static void AddGroup(GroupInfo group)
         {
             lock (LockObject)
             {
-                m_groups.Add(group.Key, group);
+                if (!m_groups.ContainsKey(group.Key))
+                    m_groups.Add(group.Key, group);
+            }
+        }
+
+        public static GroupInfo[] GetGroupArray()
+        {
+            lock (LockObject)
+            {
+                List<GroupInfo> users = new List<GroupInfo>(m_groups.Values);
+                return users.ToArray();
+            }
+        }
+
+        public static GroupInfo FindGroup(string groupKey)
+        {
+            lock (LockObject)
+            {
+                if (m_groups.ContainsKey(groupKey))
+                    return m_groups[groupKey];
+
+                return null;
             }
         }
     }

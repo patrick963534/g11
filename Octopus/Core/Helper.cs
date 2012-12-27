@@ -7,28 +7,30 @@ namespace Octopus.Core
 {
     public static class Helper
     {
-        public static byte[] StringToBytes(string val)
+        public static byte[] GetBytes(int val)
         {
-            MemoryStream ms = new MemoryStream();
-            StreamWriter w = new StreamWriter(ms);
-            w.Write(val);
-            w.Flush();
-
-            byte[] bytes = ms.ToArray();
-
-            w.Close();
-            return bytes;
+            return BitConverter.GetBytes(val);
         }
 
-        public static int BytesToInt(byte[] bytes)
+        public static byte[] GetBytes(string val)
         {
-            MemoryStream ms = new MemoryStream(bytes);
-            BinaryReader r = new BinaryReader(ms);
+            return Encoding.UTF8.GetBytes(val);
+        }
 
-            int v = r.ReadInt32();
+        public static string GetString(byte[] bytes)
+        {
+            return Encoding.UTF8.GetString(bytes);
+        }
 
-            r.Close();
-            return v;
+        public static int GetInt(byte[] bytes)
+        {
+            return BitConverter.ToInt32(bytes, 0);
+        }
+
+        public static string FormatMessage(string user, string msg)
+        {
+            return string.Format("[{0}][{1}:{2}:{3}]\r\n{4}\r\n",
+                user, DateTime.Now.Hour, DateTime.Now.Minute, DateTime.Now.Second, msg);
         }
     }
 }

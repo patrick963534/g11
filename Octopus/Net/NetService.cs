@@ -6,12 +6,14 @@ using System.Net.Sockets;
 using System.Net;
 using Octopus.Commands;
 using Octopus.Core;
+using System.Windows.Forms;
 
 namespace Octopus.Net
 {
     public class NetService
     {
-        public static int ListenPort = 51378;
+        public static int ListenPort = 51278;
+        public static int SocketBufferSize = 8192;
         private static NetService s_singleton = new NetService();
         private static List<NetPackage> s_tempPackages = new List<NetPackage>();
 
@@ -36,8 +38,10 @@ namespace Octopus.Net
                 m_socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
                 m_socket.EnableBroadcast = true;
                 m_socket.Blocking = false;
+                m_socket.SendBufferSize = SocketBufferSize;
+                m_socket.ReceiveBufferSize = SocketBufferSize;
                 m_socket.Bind(new IPEndPoint(IPAddress.Any, ListenPort));
-                Logger.WriteLine(UserInfo.ParseIPEndpoint((IPEndPoint)m_socket.LocalEndPoint));
+                Logger.WriteLine(UserInfo.ToUserToken((IPEndPoint)m_socket.LocalEndPoint));
             }
             catch (System.Exception ex)
             {
@@ -63,19 +67,31 @@ namespace Octopus.Net
         {
             int prev = DateTime.Now.Millisecond;
 
-            while (m_isRunning)
+            try
             {
-                int now = DateTime.Now.Millisecond;
-                int ellapse = Math.Max(0, now - prev);
-                prev = now;
+                while (m_isRunning)
+                {
+                    int now = DateTime.Now.Millisecond;
+                    int ellapse = Math.Max(0, now - prev);
+                    prev = now;
 
-                IncomingPackagePool.Receive(m_socket);
-                thread_command();
-                thread_outgoing(ellapse);
-                thread_notify_log_message(ellapse);
-                thread_refresh_user_list(ellapse);
+                    thread_notify_log_message(ellapse);
+                    thread_refresh_user_list(ellapse);
 
-                Thread.Sleep(60);
+                    IncomingPackagePool.Receive(m_socket);
+                    thread_command();
+
+                    if (thread_outgoing(ellapse))
+                        Thread.Sleep(4);
+                    else
+                        Thread.Sleep(60);
+                }
+            }
+            catch (System.Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+                Logger.WriteLine(ex.Message);
+                Logger.WriteLine("The NetService is stopped, please restart this tool.");
             }
         }
 
@@ -89,35 +105,32 @@ namespace Octopus.Net
             }
         }
 
-        private void thread_outgoing(int ellapse)
+        private bool thread_outgoing(int ellapse)
         {
             s_tempPackages.Clear();
+
             OutgoingPackagePool.GrabProcessPackages(ellapse, s_tempPackages, 5);
+            OutgoingPackagePool.DequeueUnprocess(s_tempPackages);
+
             foreach (NetPackage p in s_tempPackages)
             {
                 if (p.OrderID == 1)
                 {
-                    Logger.CounterCommand_Send((NetCommandType)p.CommandID);
-                    Logger.WriteLine("Send Command: " + ((NetCommandType)p.CommandID).ToString());
-                }
+                    UserInfo userinfo = UserInfoManager.FindUser(p.RemoteEP);
+                    string user = "no user";
+                    if (userinfo != null)
+                        user = userinfo.Username;
 
-                m_socket.SendTo(p.Buffer, p.Buffer.Length, SocketFlags.None, p.RemoteEP);
-            }
-
-            s_tempPackages.Clear();
-            OutgoingPackagePool.DequeueUnprocess(s_tempPackages, 10);
-            foreach (NetPackage p in s_tempPackages)
-            {
-                if (p.OrderID == 1)
-                {
                     Logger.CounterCommand_Send((NetCommandType)p.CommandID);
-                    Logger.WriteLine("Send Command: " + ((NetCommandType)p.CommandID).ToString());
+                    Logger.WriteLine(string.Format("Send Command: {0}. Package ID: {1}. Target User: {2}", p.CommandID, p.ID, user));
                 }
 
                 m_socket.SendTo(p.Buffer, p.Buffer.Length, SocketFlags.None, p.RemoteEP);
             }
 
             OutgoingPackagePool.RemoveDeadProcessed();
+
+            return s_tempPackages.Count != 0;
         }
 
         private void thread_notify_log_message(int ellapse)

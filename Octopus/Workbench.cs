@@ -25,18 +25,25 @@ namespace Octopus
         public Workbench()
         {
             InitializeComponent();
+            Show();
+        }
+
+        private void Workbench_Load(object sender, EventArgs e)
+        {
             s_singleton = this;
-
-            // Call the Show() method to force create Window Handler in the insternal.
-            // Otherwise we can't use Invoke() method.
-            this.Show();
-
             m_trayFlashTimer = new TrayFlashTimer(m_tray);
-            
+            StartPosition = FormStartPosition.Manual;
+            Location = new Point(Screen.PrimaryScreen.WorkingArea.Width - 300, 50);
+
+            Application.ThreadException += new System.Threading.ThreadExceptionEventHandler(Application_ThreadException);
             TouchVerifyCore.Start();
             NetService.Start();
-
             Logger.WriteLine(DataManager.Version);
+        }
+
+        void Application_ThreadException(object sender, System.Threading.ThreadExceptionEventArgs e)
+        {
+            MessageBox.Show(e.Exception.Message);
         }
 
         public static void NotifyUpdateLog()
@@ -74,10 +81,67 @@ namespace Octopus
             }));
         }
 
+        public static void GroupAddUser(GroupInfo group, UserInfo user)
+        {
+            if (group == null || user == null)
+                return;
+
+            s_singleton.Invoke(new DoAction(delegate
+            {
+                Logger.WriteLine(string.Format("Group: {0}, Add user: {1}", group.Name, user.Username));
+
+                group.AddUser(user);
+            }));
+        }
+
+        public static void AddGroup(string groupKey, string name)
+        {
+            if (string.IsNullOrEmpty(groupKey) || string.IsNullOrEmpty(name))
+                return;
+
+            s_singleton.Invoke(new DoAction(delegate
+            {
+                Logger.WriteLine(string.Format("Add Group: {0}. with key: {1}", name, groupKey));
+
+                GroupInfo gi = new GroupInfo(groupKey, name);
+                GroupInfoManager.AddGroup(gi);
+                s_singleton.m_groups.AddGroup(gi);
+            }));
+        }
+
+        public static void QueryGroupUser(GroupInfo group)
+        {
+            if (group == null)
+                return;
+
+            s_singleton.Invoke(new DoAction(delegate
+            {
+                Logger.WriteLine(string.Format("Query Group Users, group name: {0}. with key: {1}", group.Name, group.Key));
+
+                group.QueryGroupUsers();
+            }));
+        }
+
+        public static void QuitGroup(GroupInfo group)
+        {
+            if (group == null)
+                return;
+
+            s_singleton.Invoke(new DoAction(delegate
+            {
+                Logger.WriteLine(string.Format("Quit Group: {0}. with key: {1}", group.Name, group.Key));
+
+                GroupInfoManager.DeleteGroup(group);
+                s_singleton.m_groups.DeleteGroup(group);
+            }));
+        }
+
         public static void ExitForm()
         {
             s_singleton.Invoke(new DoAction(delegate
             {
+                GroupConfig.Save();
+
                 s_singleton.m_really_close = true;
                 s_singleton.m_tray.Visible = false;
                 NetService.Stop();
@@ -92,20 +156,24 @@ namespace Octopus
             
             if (mouse_e.Button == MouseButtons.Left)
             {
-                if (m_trayFlashTimer.FlashingUser == null)
+                if (m_trayFlashTimer.FlashingUser != null)
                 {
-                    s_singleton.Show();
-                    s_singleton.Activate();
+                    m_trayFlashTimer.FlashingUser.ShowChatter();
+                }
+                else if (m_trayFlashTimer.FlashingGroup != null)
+                {
+                    m_trayFlashTimer.FlashingGroup.ShowChatter();
                 }
                 else
                 {
-                    m_trayFlashTimer.FlashingUser.ShowChatter();
+                    s_singleton.Show();
+                    s_singleton.Activate();                    
                 }                
             }
             else if (mouse_e.Button == MouseButtons.Right)
             {
                 s_singleton.Activate();
-                if (MessageBox.Show("是否退出八爪鱼?", "Octopus", MessageBoxButtons.YesNo) == DialogResult.Yes)
+                if (MessageBox.Show("是否退出章鱼?", "Octopus", MessageBoxButtons.YesNo) == DialogResult.Yes)
                 {
                     ExitForm();
                 }
@@ -138,6 +206,7 @@ namespace Octopus
             private NotifyIcon m_tray;
             private bool m_state;
             private UserInfo m_flashingUser;
+            private GroupInfo m_flashingGroup;
 
             public TrayFlashTimer(NotifyIcon tray)
             {
@@ -154,6 +223,11 @@ namespace Octopus
                 get { return m_flashingUser; }
             }
 
+            public GroupInfo FlashingGroup
+            {
+                get { return m_flashingGroup; }
+            }
+
             void m_timer_Tick(object sender, EventArgs e)
             {
                 m_timer.Start();
@@ -163,12 +237,22 @@ namespace Octopus
                     m_flashingUser = null;
                 }
 
+                if (m_flashingGroup != null && !m_flashingGroup.IsReceiveNewMessage)
+                {
+                    m_flashingGroup = null;
+                }
+
                 if (m_flashingUser == null)
                 {
                     m_flashingUser = UserInfoManager.FindUserWhichHaveNewMessage();
                 }
-                
+
                 if (m_flashingUser == null)
+                {
+                    m_flashingGroup = GroupInfoManager.FindGroupWhichHaveNewMessage();
+                }
+               
+                if (m_flashingUser == null && m_flashingGroup == null)
                 {
                     m_tray.Icon = IconManager.Tray_Normal;
                     return;

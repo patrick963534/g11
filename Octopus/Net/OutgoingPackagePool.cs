@@ -23,19 +23,35 @@ namespace Octopus.Net
             s_singleton = new OutgoingPackagePool();
         }
 
-        public static void Add(NetPackage package)
+        public static void Add(NetPackage[] packages)
         {
             lock (m_lockobject)
             {
-                s_singleton.m_unprocessed.Add(package);
+                s_singleton.m_unprocessed.AddRange(packages);
             }
         }
 
-        public static void AddFirst(NetPackage package)
+        public static void AddFirst(NetPackage[] packages)
         {
             lock (m_lockobject)
             {
-                s_singleton.m_unprocessed.Insert(0, package);
+                s_singleton.m_unprocessed.InsertRange(0, packages);
+            }
+        }
+
+        public static int GetUnprocessedPackageCount()
+        {
+            lock (m_lockobject)
+            {
+                return s_singleton.m_unprocessed.Count;
+            }
+        }
+
+        public static int GetProcessedPackageInPoolCount()
+        {
+            lock (m_lockobject)
+            {
+                return s_singleton.m_processed.Count;
             }
         }
 
@@ -43,6 +59,7 @@ namespace Octopus.Net
         {
             lock (m_lockobject)
             {
+                Logger.WriteLine(string.Format("Remove package with ID: {0}", packageID));
                 s_singleton.m_processed.Remove(packageID);
             }  
         }
@@ -56,33 +73,41 @@ namespace Octopus.Net
                 {
                     if (pkg.Update(ellapse))
                     {
-                        if (i >= expected_count)
-                        {
-                            pkgs.Add(pkg.NetPackage);
-                            i++;
-                        }                        
+                        pkgs.Add(pkg.NetPackage);
+                        i++;
                     }
+
+                    if (i >= expected_count)
+                        break;
                 }
             }
         }
 
-        public static void DequeueUnprocess(List<NetPackage> pkgs, int expected_count)
+        public static void DequeueUnprocess(List<NetPackage> pkgs)
         {
             lock (m_lockobject)
             {
-                int i = 0;
+                int sz = 0;
+                foreach (NetPackage pkg in pkgs)
+                {
+                    sz += pkg.Buffer.Length;
+                }
+
                 while (s_singleton.m_unprocessed.Count != 0)
                 {
                     NetPackage pkg = s_singleton.m_unprocessed[0];
+
+                    sz += pkg.Buffer.Length;
+                    if (sz >= NetService.SocketBufferSize)
+                        break;
+
+
                     s_singleton.m_unprocessed.RemoveAt(0);
 
                     if (!pkg.IsRemoveProcessedPackageType)
                         s_singleton.m_processed.Add(pkg.ID, new PackageLife(pkg));
 
                     pkgs.Add(pkg);
-
-                    if (++i >= expected_count)
-                        break;
                 }                
             }
         }
@@ -100,9 +125,9 @@ namespace Octopus.Net
                         if (pkg.IsDead)
                         {
                             if (pkg.NetPackage.OrderID == 1)
-                            {
                                 Logger.WriteLine(string.Format("Package with command '{0}' is dead.", (NetCommandType)pkg.NetPackage.CommandID));
-                            }
+                            else
+                                Logger.WriteLine(string.Format("Part package with command '{0}' is dead.", (NetCommandType)pkg.NetPackage.CommandID));
 
                             m_removedIDs.Add(pkg.NetPackage.ID);
                         }
@@ -127,7 +152,7 @@ namespace Octopus.Net
             public PackageLife(NetPackage pkg)
             {
                 m_pkg = pkg;
-                m_resendCounter = 10;
+                m_resendCounter = 20;
                 m_timer = 0;
 
                 if (s_maxTimes == null)
@@ -135,7 +160,7 @@ namespace Octopus.Net
                     s_maxTimes = new List<int>();
                     for (int i = 0; i < m_resendCounter; i++)
                     {
-                        s_maxTimes.Add(300 + 600 * (m_resendCounter - i - 1));
+                        s_maxTimes.Add(200 + 100 * (m_resendCounter - i - 1));
                     }
                 }
             }

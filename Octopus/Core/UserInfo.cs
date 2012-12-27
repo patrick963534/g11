@@ -30,18 +30,18 @@ namespace Octopus.Core
             if (Chatter == null)
                 Chatter = new ChatForm(this);
 
-            IsReceiveNewMessage = false;
             Chatter.Show();
             Chatter.Activate();
+
+            IsReceiveNewMessage = false;
         }
 
-        public void AppendMessage(string user, string msg)
+        public void AppendMessage(string msg)
         {
             if (!string.IsNullOrEmpty(Messages))
                 Messages += "\r\n";
 
-            Messages += string.Format("[{0}][{1}:{2}:{3}]\r\n{4}\r\n", 
-                user, DateTime.Now.Hour, DateTime.Now.Minute, DateTime.Now.Second, msg);
+            Messages += msg;
 
             if (Chatter != null)
             {
@@ -54,7 +54,12 @@ namespace Octopus.Core
             }
         }
 
-        public static string ParseIPEndpoint(IPEndPoint ipe)
+        public string GetToken()
+        {
+            return ToUserToken(RemoteIP);
+        }
+
+        public static string ToUserToken(IPEndPoint ipe)
         {
             return ipe.Address.ToString() + ":" + ipe.Port;
         }
@@ -79,11 +84,28 @@ namespace Octopus.Core
             }
         }
 
+        public static UserInfo[] GetUserArray()
+        {
+            lock (LockObject)
+            {
+                List<UserInfo> users = new List<UserInfo>(m_users.Values);
+                return users.ToArray();
+            }
+        }
+
         public static void AddUser(UserInfo user)
         {
             lock (LockObject)
             {
-                m_users.Add(UserInfo.ParseIPEndpoint(user.RemoteIP), user);
+                m_users.Add(user.GetToken(), user);
+            }
+        }
+
+        public static int GetUserCount()
+        {
+            lock (LockObject)
+            {
+                return m_users.Count;
             }
         }
 
@@ -91,7 +113,7 @@ namespace Octopus.Core
         {
             lock (LockObject)
             {
-                string key = UserInfo.ParseIPEndpoint(ipe);
+                string key = UserInfo.ToUserToken(ipe);
                 if (m_users.ContainsKey(key))
                     return m_users[key];
 

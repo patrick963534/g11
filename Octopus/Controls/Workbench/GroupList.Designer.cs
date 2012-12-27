@@ -1,4 +1,4 @@
-﻿namespace Octopus.Controls.Workbench
+﻿namespace Octopus.Controls
 {
     partial class GroupList
     {
@@ -42,6 +42,7 @@
             this.m_list.Name = "m_list";
             this.m_list.Size = new System.Drawing.Size(184, 412);
             this.m_list.TabIndex = 0;
+            this.m_list.DoubleClick += new System.EventHandler(this.m_list_DoubleClick);
             this.m_list.MouseDown += new System.Windows.Forms.MouseEventHandler(this.m_list_MouseDown);
             // 
             // GroupList

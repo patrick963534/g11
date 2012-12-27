@@ -3,26 +3,25 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using Octopus.Base;
+using System.Windows.Forms;
 
 namespace Octopus.Core
 {
     public class TouchVerifyCore
     {
-        private static TouchVerifyCore s_singleton;
+        private static TouchVerifyCore s_singleton = new TouchVerifyCore();
         private static string PressTouchMessage = "快去奉献你的指纹吧, 否则后果自负~~!!";
         private static string LunchMessage = "是时间进行肠胃建设了... :D";
         private static string AfternoonRestMessage = "出去走动走动吧~~";
 
         private Info info = new Info();
+        private bool m_isRunning;
         private Thread thread;
-
-        static TouchVerifyCore()
-        {
-            s_singleton = new TouchVerifyCore();
-        }
 
         public static void Start()
         {
+            s_singleton.m_isRunning = true;
+
             s_singleton.thread = new Thread(new ThreadStart(s_singleton.run));
             s_singleton.thread.Name = "Touch_Verify_Core_Thread";
             s_singleton.thread.Start();
@@ -30,15 +29,28 @@ namespace Octopus.Core
 
         public static void Stop()
         {
+            s_singleton.m_isRunning = false;
             s_singleton.thread.IsBackground = true;
-            //s_singleton.thread.Abort();
         }
 
         private void run()
         {
             Thread.Sleep(3 * 1000);
 
-            while (true)
+            try
+            {
+                thread_run();
+            }
+            catch (System.Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+                Logger.WriteLine(ex.Message);
+            }
+        }
+
+        private void thread_run()
+        {
+            while (m_isRunning)
             {
                 int hour = DateTime.Now.Hour;
                 int minute = DateTime.Now.Minute;

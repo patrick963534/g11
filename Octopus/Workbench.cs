@@ -26,6 +26,8 @@ namespace Octopus
         {
             InitializeComponent();
             Show();
+
+            this.Text = string.Format("Octopus (v{0})", DataManager.Version);
         }
 
         private void Workbench_Load(object sender, EventArgs e)
@@ -64,9 +66,6 @@ namespace Octopus
             if (UserInfoManager.FindUser(remoteIP) != null)
                 return;
 
-            if (name == DataManager.WhoAmI)
-                return;
-
             s_singleton.Invoke(new DoAction(delegate
             {
                 IPAddress addr = remoteIP.Address;
@@ -78,6 +77,11 @@ namespace Octopus
                 UserInfoManager.AddUser(user);
 
                 s_singleton.m_users.AddUser(user);
+
+                if (UserInfoManager.GetUserCount() == 2 && user.Username != DataManager.WhoAmI)
+                {
+                    OutgoingPackagePool.AddFirst(NetPackageGenerater.CheckUserCount(1, remoteIP));
+                }
             }));
         }
 
@@ -91,6 +95,11 @@ namespace Octopus
                 Logger.WriteLine(string.Format("Group: {0}, Add user: {1}", group.Name, user.Username));
 
                 group.AddUser(user);
+
+                if (group.GetUserCount() == 2 && user.Username != DataManager.WhoAmI)
+                {
+                    OutgoingPackagePool.AddFirst(NetPackageGenerater.CheckGroupUserCount(group.Key, 1, user.RemoteIP));
+                }
             }));
         }
 

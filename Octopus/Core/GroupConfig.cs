@@ -13,7 +13,7 @@ namespace Octopus.Core
         {
             try
             {
-                string path = Path.Combine(Path.GetTempPath(), cfg_file);
+                string path = Path.Combine(DataManager.GetCfgFolderPath(), cfg_file);
 
                 if (File.Exists(path))
                     File.Delete(path);
@@ -36,7 +36,7 @@ namespace Octopus.Core
         {
             try
             {
-                string path = Path.Combine(Path.GetTempPath(), cfg_file);
+                string path = Path.Combine(DataManager.GetCfgFolderPath(), cfg_file);
                 if (!File.Exists(path))
                     return;
 

@@ -4,6 +4,7 @@ using System.Text;
 using Octopus.Net;
 using Octopus.Core;
 using System.Net;
+using System.IO;
 
 namespace Octopus.Commands
 {
@@ -11,19 +12,23 @@ namespace Octopus.Commands
     public enum NetCommandType
     {
         RemoveProcessedPackage = 0x200,
+
         AppendTextMessage,
+        AppendImageMessage,
+
         BroadcastFindUser,
         AddUser,
 
         FindGroupUser,
         AddGroupUser,
         AppendGroupTextMessage,
+        AppendGroupImageMessage,
         CreateNewGroup,
 
         CheckUserCount,
-        RefreshUsers,
+        ReturnUserList,
         CheckGroupUserCount,
-        RefreshGroupUsers,
+        ReturnGroupUserList,
     }
 
     public abstract class Cmd
@@ -64,10 +69,8 @@ namespace Octopus.Commands
 
         protected override void ExecuteImpl()
         {
-            m_user.AppendMessage(m_text);
+            m_user.AppendMessage(m_text, m_user.Username);
             Logger.WriteLine("Add message:" + m_text);
-            if (m_user.Chatter == null)
-                Logger.WriteLine("Chatter is null.");
         }
     }
 
@@ -92,17 +95,20 @@ namespace Octopus.Commands
     public class NP_AddUserCmd : Cmd
     {
         private IPEndPoint m_remoteIP;
-        private string m_hostname;
+        private string m_name;
 
         public NP_AddUserCmd(byte[] data, IPEndPoint remoteIP)
         {
             m_remoteIP = new IPEndPoint(remoteIP.Address, remoteIP.Port);
-            m_hostname = Encoding.UTF8.GetString(data);
+            m_name = Encoding.UTF8.GetString(data);
         }
 
         protected override void ExecuteImpl()
         {
-            Workbench.AddClient(m_hostname, m_remoteIP);
+            if (m_name == DataManager.WhoAmI)
+                return;
+
+            Workbench.AddClient(m_name, m_remoteIP);
         }
     }
 
@@ -153,6 +159,7 @@ namespace Octopus.Commands
     {
         private string m_groupKey;
         private string m_text;
+        private UserInfo m_user;
 
         public NP_AppendGroupTextMessageCmd(byte[] data, IPEndPoint remoteIP)
         {
@@ -161,14 +168,16 @@ namespace Octopus.Commands
 
             m_groupKey = val.Substring(0, pos);
             m_text = val.Substring(pos + 1);
+
+            m_user = UserInfoManager.FindUser(remoteIP);
         }
 
         protected override void ExecuteImpl()
         {
             GroupInfo gi = GroupInfoManager.FindGroup(m_groupKey);
-            if (gi != null)
+            if (gi != null && m_user != null)
             {
-                gi.AppendMessage(m_text);
+                gi.AppendMessage(m_text, m_user.Username);
             }
         }
     }
@@ -210,19 +219,29 @@ namespace Octopus.Commands
 
             if (m_count < current)
             {
-                OutgoingPackagePool.AddFirst(NetPackageGenerater.RefreshUsers(m_remoteIP));
+                OutgoingPackagePool.AddFirst(NetPackageGenerater.ReturnUserList(UserInfoManager.GetUserArray(), m_remoteIP));
             }
         }
     }
 
-    public class NP_RefreshUsersCmd : Cmd
+    public class NP_ReturnUserListCmd : Cmd
     {
-        public NP_RefreshUsersCmd(byte[] data, IPEndPoint remoteIP)
-        { }
+        private string[] m_usrNetStrings;
+
+        public NP_ReturnUserListCmd(byte[] data, IPEndPoint remoteIP)
+        {
+            string val = Helper.GetString(data);
+            m_usrNetStrings = val.Split(new string[] { "$%$" }, StringSplitOptions.RemoveEmptyEntries);
+        }
 
         protected override void ExecuteImpl()
         {
-            OutgoingPackagePool.AddFirst(NetPackageGenerater.BroadcastFindUser());            
+            UserInfo lastUser = null;
+            foreach (string ns in m_usrNetStrings)
+            {
+                lastUser = UserInfo.FromNetString(ns);
+                Workbench.AddClient(lastUser.Username, lastUser.RemoteIP);
+            }
         }
     }
 
@@ -249,28 +268,103 @@ namespace Octopus.Commands
             {
                 if (group.GetUserCount() > m_count)
                 {
-                    OutgoingPackagePool.AddFirst(NetPackageGenerater.RefreshGroupUsers(m_groupKey, m_remoteIP));
+                    OutgoingPackagePool.AddFirst(NetPackageGenerater.ReturnGroupUserList(m_groupKey, group.GetUserArray(), m_remoteIP));
                 }
             }
         }
     }
 
-    public class NP_RefreshGroupUsersCmd : Cmd
+    public class NP_ReturnGroupUserListCmd : Cmd
     {
-        private string m_groupKey;
+        private string[] m_subs;
 
-        public NP_RefreshGroupUsersCmd(byte[] data, IPEndPoint remoteIP)
+        public NP_ReturnGroupUserListCmd(byte[] data, IPEndPoint remoteIP)
         {
-            m_groupKey = Helper.GetString(data);
+            string val = Helper.GetString(data);
+            m_subs = val.Split(new string[] { "$%$" }, StringSplitOptions.RemoveEmptyEntries);
         }
 
         protected override void ExecuteImpl()
         {
-            GroupInfo group = GroupInfoManager.FindGroup(m_groupKey);
-            if (group != null)
+            if (m_subs.Length == 0)
+                return;
+
+            string groupKey = m_subs[0];
+            GroupInfo group = GroupInfoManager.FindGroup(groupKey);
+            if (group == null)
+                return;
+
+            UserInfo lastUser = null;
+            for (int i = 1; i < m_subs.Length; i++)
             {
-                Workbench.QueryGroupUser(group);
+                lastUser = UserInfo.FromNetString(m_subs[i]);
+                Workbench.GroupAddUser(group, lastUser);
             }
+        }
+    }
+
+    public class NP_AppendImageMessageCmd : Cmd
+    {
+        private string m_filename;
+        private UserInfo m_user;
+
+        public NP_AppendImageMessageCmd(byte[] data, IPEndPoint remoteIP)
+        {
+            m_user = UserInfoManager.FindUser(remoteIP);
+            int length = Helper.GetInt(data);
+            m_filename = Helper.GetString(data, 4, length);
+            m_filename = Path.Combine(DataManager.GetCustomFaceFolderPath(), m_filename);
+
+            if (!File.Exists(m_filename))
+            {
+                using (FileStream fs = new FileStream(m_filename, FileMode.CreateNew, FileAccess.Write))
+                {
+                    fs.Write(data, length + 4, data.Length - length - 4);
+                }
+            }
+        }
+
+        protected override void ExecuteImpl()
+        {
+            if (m_user == null)
+                return;
+
+            m_user.AppendMessage(MsgInputConfig.FormatImageMessage(m_filename), m_user.Username);
+        }
+    }
+
+    public class NP_AppendGroupImageMessageCmd : Cmd
+    {
+        private string m_filename;
+        private GroupInfo m_group;
+        private UserInfo m_user;
+
+        public NP_AppendGroupImageMessageCmd(byte[] data, IPEndPoint remoteIP)
+        {
+            m_user = UserInfoManager.FindUser(remoteIP);
+
+            int key_length = Helper.GetInt(data);
+            m_group = GroupInfoManager.FindGroup(Helper.GetString(data, 4, key_length));
+
+            int length = Helper.GetInt(data, key_length + 4);
+            m_filename = Helper.GetString(data, key_length + 8, length);
+            m_filename = Path.Combine(DataManager.GetCustomFaceFolderPath(), m_filename);
+
+            if (!File.Exists(m_filename))
+            {
+                using (FileStream fs = new FileStream(m_filename, FileMode.CreateNew, FileAccess.Write))
+                {
+                    fs.Write(data, 4 + key_length + length + 4, data.Length - 4 - key_length - length - 4);
+                }
+            }
+        }
+
+        protected override void ExecuteImpl()
+        {
+            if (m_group == null || m_user == null)
+                return;
+
+            m_group.AppendMessage(MsgInputConfig.FormatImageMessage(m_filename), m_user.Username);
         }
     }
 }

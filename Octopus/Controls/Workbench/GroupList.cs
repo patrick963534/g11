@@ -91,7 +91,10 @@ namespace Octopus.Controls
                 switch (e.ClickedItem.Text)
                 {
                     case "QuitGroup":
-                        Workbench.QuitGroup(m_group);
+                        string msg = string.Format("你确定要退出房间({0})么?", m_group.Name);
+                        if (MessageBox.Show(msg, "Octopus", MessageBoxButtons.YesNo) == DialogResult.Yes)
+                            Workbench.QuitGroup(m_group);
+                        
                         break;
                 }
             }

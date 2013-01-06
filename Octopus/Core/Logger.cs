@@ -10,23 +10,26 @@ namespace Octopus.Core
         private static Logger s_singleton = new Logger();
         private static object s_lockobject = new object();
 
-        private static string s_msg = string.Empty;
-        private static int msg_counter = 0;
+        private static List<string> s_messages = new List<string>();
         private static int pkg_counter = 0;
+        private static int dead_pkg_counter = 0;
 
         private static Dictionary<NetCommandType, int> m_cmdCounter_recv = new Dictionary<NetCommandType, int>();
         private static Dictionary<NetCommandType, int> m_cmdCounter_send = new Dictionary<NetCommandType, int>();
-
-        public static string Msg
-        {
-            get { return s_msg; }
-        }
 
         public static void Counter_Pkg_Recv()
         {
             lock (s_lockobject)
             {
                 pkg_counter++;
+            }
+        }
+
+        public static void Counter_Dead_Pkg()
+        {
+            lock (s_lockobject)
+            {
+                dead_pkg_counter++;
             }
         }
 
@@ -59,6 +62,15 @@ namespace Octopus.Core
                 }
             }
         }
+
+        public static string Get_Dead_Pkg_Counter()
+        {
+            lock (s_lockobject)
+            {
+                return string.Format("Dead part packages : {0} \r\n", dead_pkg_counter);
+            }
+        }
+
         public static string Get_Recv_Part_Packages()
         {
             lock (s_lockobject)
@@ -101,10 +113,28 @@ namespace Octopus.Core
         {
             lock (s_lockobject)
             {
-                msg_counter++;
-                s_msg += string.Format("[{0:D6}][{1}]{2}\r\n",
-                    msg_counter, DateTime.Now.ToShortTimeString(), msg);
+                s_messages.Add(string.Format("[{0:D6}][{1}]{2}\r\n",
+                    s_messages.Count + 1, DateTime.Now.ToShortTimeString(), msg));
             }            
+        }
+
+        public static List<string> GetMessageByIdx(ref int index)
+        {
+            lock (s_lockobject)
+            {
+                if (index < s_messages.Count - 1)
+                {
+                    int count = Math.Min(3000, s_messages.Count - 1 - index);
+
+                    if (count != 0)
+                    {
+                        index = s_messages.Count - 1;
+                        return s_messages.GetRange(s_messages.Count - 1 - count, count);
+                    }
+                }
+
+                return null;
+            }          
         }
     }
 }

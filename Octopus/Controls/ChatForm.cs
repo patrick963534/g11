@@ -39,10 +39,7 @@ namespace Octopus.Controls
         {
             this.Invoke(new DoAction(delegate
             {
-                m_msg_show_tbx.Text = m_userinfo.Messages;
-
-                m_msg_show_tbx.SelectionStart = m_msg_show_tbx.Text.Length;
-                m_msg_show_tbx.ScrollToCaret();
+                msgRichViewer1.UpdateMessages(m_userinfo.MessageStore);
 
                 if (!m_isActive)
                 {
@@ -53,29 +50,30 @@ namespace Octopus.Controls
 
         private void m_msg_input_tbx_KeyDown(object sender, KeyEventArgs e)
         {
-            if (!e.Control && e.KeyCode == Keys.Enter)
+            if (!e.Shift && e.KeyCode == Keys.Enter)
             {
                 string msg = m_msg_input_tbx.Text.Trim();
                 if (string.IsNullOrEmpty(msg))
                     return;
 
-                msg = Helper.FormatMessage(DataManager.WhoAmI, msg);
-                m_userinfo.AppendMessage(msg);
-
-                OutgoingPackagePool.Add(NetPackageGenerater.AppendTextMessage(msg, m_userinfo.RemoteIP));
+                msg = MsgInputConfig.FormatMessage(msg);
                 m_msg_input_tbx.Text = string.Empty;
+
+                m_userinfo.AppendMessage(msg, DataManager.WhoAmI);
+                OutgoingPackagePool.Add(NetPackageGenerater.AppendTextMessage(msg, m_userinfo.RemoteIP));
+
                 e.Handled = true;
                 e.SuppressKeyPress = true;
             }
             else if (e.Alt && e.KeyCode == Keys.C)
             {
-                Close();
+                //Close();
             }
         }
 
         private void ChatForm_FormClosed(object sender, FormClosedEventArgs e)
         {
-            m_userinfo.Chatter = null;
+            m_userinfo.ExitChatter();
         }
 
         protected override void OnDeactivate(EventArgs e)
@@ -88,6 +86,22 @@ namespace Octopus.Controls
         {
             m_isActive = true;
             base.OnActivated(e);
+        }
+
+        private void m_sendImage_btn_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog dlg = new OpenFileDialog();
+            dlg.Filter = "Images(*.gif,*.png,*.jpg)|*.gif;*.png;*.jpg|所有文件(*.*)|*.*";
+            if (dlg.ShowDialog() == DialogResult.OK)
+            {
+                m_userinfo.AppendMessage(MsgInputConfig.FormatImageMessage(dlg.FileName), DataManager.WhoAmI);
+                OutgoingPackagePool.AddFirst(NetPackageGenerater.AppendImageMessage(dlg.FileName, m_userinfo.RemoteIP));
+            }            
+        }
+
+        private void m_customFace_btn_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }

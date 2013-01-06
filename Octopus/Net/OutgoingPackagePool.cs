@@ -124,6 +124,8 @@ namespace Octopus.Net
                     {
                         if (pkg.IsDead)
                         {
+                            Logger.Counter_Dead_Pkg();
+
                             if (pkg.NetPackage.OrderID == 1)
                                 Logger.WriteLine(string.Format("Package with command '{0}' is dead.", (NetCommandType)pkg.NetPackage.CommandID));
                             else

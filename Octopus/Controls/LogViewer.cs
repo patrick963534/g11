@@ -15,6 +15,7 @@ namespace Octopus.Controls
         private static LogViewer s_singleton;
 
         private Timer m_timer;
+        private static int m_index;
 
         public LogViewer()
         {
@@ -43,14 +44,18 @@ namespace Octopus.Controls
         {
             if (s_singleton != null)
             {
-                TextBox tbx = s_singleton.m_msg_show_tbx;
-                string msg = Logger.Msg;
-
-                if (msg.Length != tbx.Text.Length)
+                int max = 100 * 1000;
+                if (s_singleton.listBox1.Items.Count > max)
                 {
-                    tbx.Text = Logger.Msg;
-                    tbx.SelectionStart = tbx.Text.Length;
-                    tbx.ScrollToCaret();
+                    s_singleton.listBox1.Items.Clear();
+                    m_index -= max / 2;
+                }
+
+                List<string> items = Logger.GetMessageByIdx(ref m_index);
+                if (items != null)
+                {
+                    s_singleton.listBox1.Items.AddRange(items.ToArray());
+                    m_index += items.Count;
                 }
             }            
         }
@@ -75,6 +80,7 @@ namespace Octopus.Controls
 
             m_extraMessage_tbx.Text += "**********Send msg counter********** \r\n";
             m_extraMessage_tbx.Text += Logger.Get_Send_CounterCommandMsg();
+            m_extraMessage_tbx.Text += Logger.Get_Dead_Pkg_Counter();
 
             m_extraMessage_tbx.SelectionStart = m_extraMessage_tbx.Text.Length;
             m_extraMessage_tbx.ScrollToCaret();
@@ -83,6 +89,7 @@ namespace Octopus.Controls
         private void LogViewer_FormClosed(object sender, FormClosedEventArgs e)
         {
             s_singleton = null;
+            m_index = 0;
         }
     }
 }

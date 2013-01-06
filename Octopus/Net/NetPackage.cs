@@ -138,7 +138,7 @@ namespace Octopus.Net
     {
         public static NetPackage[] BroadcastFindUser()
         {
-            IPEndPoint iep = new IPEndPoint(IPAddress.Broadcast, NetService.ListenPort);
+            IPEndPoint iep = new IPEndPoint(IPAddress.Broadcast, NetService.SocketReadPort);
             byte[] data = Encoding.UTF8.GetBytes(DataManager.WhoAmI);
             return NetPackage.ContentCreate(NetCommandType.BroadcastFindUser, data, iep);
         }
@@ -185,10 +185,15 @@ namespace Octopus.Net
             return NetPackage.ContentCreate(NetCommandType.CheckUserCount, Helper.GetBytes(count), iep);
         }
 
-        public static NetPackage[] RefreshUsers(IPEndPoint iep)
+        public static NetPackage[] ReturnUserList(UserInfo[] users, IPEndPoint iep)
         {
-            string val = "nothing";
-            return NetPackage.ContentCreate(NetCommandType.RefreshUsers, Helper.GetBytes(val), iep);
+            StringBuilder builder = new StringBuilder();
+            foreach (UserInfo usr in users)
+            {
+                builder.Append(string.Format("{0}$%$", usr.ToNetString()));
+            }
+
+            return NetPackage.ContentCreate(NetCommandType.ReturnUserList, Helper.GetBytes(builder.ToString()), iep);
         }
 
         public static NetPackage[] CheckGroupUserCount(string groupKey, int count, IPEndPoint iep)
@@ -197,9 +202,56 @@ namespace Octopus.Net
             return NetPackage.ContentCreate(NetCommandType.CheckGroupUserCount, Helper.GetBytes(val), iep);
         }
 
-        public static NetPackage[] RefreshGroupUsers(string groupKey, IPEndPoint iep)
+        public static NetPackage[] ReturnGroupUserList(string groupKey, UserInfo[] users, IPEndPoint iep)
         {
-            return NetPackage.ContentCreate(NetCommandType.RefreshGroupUsers, Helper.GetBytes(groupKey), iep);
+            string splitter = "$%$";
+            StringBuilder builder = new StringBuilder();
+            builder.Append(string.Format("{0}{1}", groupKey, splitter));
+            foreach (UserInfo usr in users)
+            {
+                builder.Append(string.Format("{0},{1}{2}", usr.GetToken(), usr.Username, splitter));
+            }
+
+            return NetPackage.ContentCreate(NetCommandType.ReturnGroupUserList, Helper.GetBytes(builder.ToString()), iep);
+        }
+
+        public static NetPackage[] AppendImageMessage(string imagePath, IPEndPoint iep)
+        {
+            MemoryStream stream = new MemoryStream();
+            byte[] bytes = null;
+
+            bytes = Helper.GetBytes(Path.GetFileName(imagePath));
+            stream.Write(Helper.GetBytes(bytes.Length), 0, 4);
+            stream.Write(bytes, 0, bytes.Length);
+
+            bytes = File.ReadAllBytes(imagePath);
+            stream.Write(bytes, 0, bytes.Length);
+
+            bytes = stream.ToArray();
+            stream.Dispose();
+
+            return NetPackage.ContentCreate(NetCommandType.AppendImageMessage, bytes, iep);
+        }
+
+        public static NetPackage[] AppendGroupImageMessage(string groupKey, string imagePath, byte[] imageData, IPEndPoint iep)
+        {
+            MemoryStream stream = new MemoryStream();
+            byte[] bytes = null;
+
+            bytes = Helper.GetBytes(Path.GetFileName(groupKey));
+            stream.Write(Helper.GetBytes(bytes.Length), 0, 4);
+            stream.Write(bytes, 0, bytes.Length);
+
+            bytes = Helper.GetBytes(Path.GetFileName(imagePath));
+            stream.Write(Helper.GetBytes(bytes.Length), 0, 4);
+            stream.Write(bytes, 0, bytes.Length);
+
+            stream.Write(imageData, 0, imageData.Length);
+
+            bytes = stream.ToArray();
+            stream.Dispose();
+
+            return NetPackage.ContentCreate(NetCommandType.AppendGroupImageMessage, bytes, iep);
         }
     }
 }

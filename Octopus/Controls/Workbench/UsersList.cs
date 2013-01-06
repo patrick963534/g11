@@ -22,25 +22,13 @@ namespace Octopus.Controls
             m_users_list.Items.Add(user);
         }
 
-        public void AddSelectedUserToGroup(GroupInfo group)
-        {
-            UserInfo user = (UserInfo)m_users_list.SelectedItem;
-
-            if (user != null)
-            {
-                if (!group.ContainsUser(user))
-                {
-                    group.AddUser(user);
-                    OutgoingPackagePool.AddFirst(NetPackageGenerater.CreateNewGroup(group.Key, group.Name, user.RemoteIP));
-                }
-            }
-        }
-
         private void m_users_list_MouseDown(object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Right)
             {
-                this.ContextMenuStrip = new UserContextMenu(this);
+                UserInfo user = (UserInfo)m_users_list.SelectedItem;
+                if (user != null)
+                    this.ContextMenuStrip = new UserContextMenu(user);
             }
         }
 
@@ -55,28 +43,37 @@ namespace Octopus.Controls
 
         private class UserContextMenu : ContextMenuStrip
         {
-            private UsersList m_owner;
+            private UserInfo m_user;
 
-            public UserContextMenu(UsersList owner)
+            public UserContextMenu(UserInfo user)
             {
                 this.Items.Add("JoinGroup");
                 this.ItemClicked += new ToolStripItemClickedEventHandler(GroupListBoxContextMenu_ItemClicked);
 
-                m_owner = owner;
+                m_user = user;
             }
 
             void GroupListBoxContextMenu_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
             {
-                switch (e.ClickedItem.Text)
+                if (e.ClickedItem.Text == "JoinGroup")
                 {
-                    case "JoinGroup":
-                        GroupSelectionForm dlg = new GroupSelectionForm();
-                        dlg.StartPosition = FormStartPosition.CenterParent;
-                        if (dlg.ShowDialog() == DialogResult.OK)
+                    GroupSelectionForm dlg = new GroupSelectionForm();
+                    dlg.StartPosition = FormStartPosition.CenterParent;
+                    if (dlg.ShowDialog() == DialogResult.OK)
+                    {
+                        GroupInfo group = dlg.SelectedGroup;
+
+                        if (!group.ContainsUser(m_user))
+                            group.AddUser(m_user);
+
+                        OutgoingPackagePool.AddFirst(NetPackageGenerater.CreateNewGroup(group.Key, group.Name, m_user.RemoteIP));
+
+                        UserInfo[] users = group.GetUserArray();
+                        foreach (UserInfo usr in users)
                         {
-                            m_owner.AddSelectedUserToGroup(dlg.SelectedGroup);
+                            OutgoingPackagePool.Add(NetPackageGenerater.CheckGroupUserCount(group.Key, users.Length, usr.RemoteIP));
                         }
-                        break;
+                    }
                 }
             }
         }

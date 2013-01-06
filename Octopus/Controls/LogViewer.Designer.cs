@@ -28,28 +28,14 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.m_msg_show_tbx = new System.Windows.Forms.TextBox();
             this.m_extraMessage_tbx = new System.Windows.Forms.TextBox();
             this.m_cmdCounter_btn = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
             this.m_packagesInQueue_tbx = new System.Windows.Forms.TextBox();
             this.label2 = new System.Windows.Forms.Label();
             this.m_processedPackagesInPool_tbx = new System.Windows.Forms.TextBox();
+            this.listBox1 = new System.Windows.Forms.ListBox();
             this.SuspendLayout();
-            // 
-            // m_msg_show_tbx
-            // 
-            this.m_msg_show_tbx.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                        | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
-            this.m_msg_show_tbx.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.m_msg_show_tbx.Location = new System.Drawing.Point(12, 12);
-            this.m_msg_show_tbx.Multiline = true;
-            this.m_msg_show_tbx.Name = "m_msg_show_tbx";
-            this.m_msg_show_tbx.ReadOnly = true;
-            this.m_msg_show_tbx.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.m_msg_show_tbx.Size = new System.Drawing.Size(494, 256);
-            this.m_msg_show_tbx.TabIndex = 1;
             // 
             // m_extraMessage_tbx
             // 
@@ -113,18 +99,28 @@
             this.m_processedPackagesInPool_tbx.Size = new System.Drawing.Size(83, 21);
             this.m_processedPackagesInPool_tbx.TabIndex = 5;
             // 
+            // listBox1
+            // 
+            this.listBox1.FormattingEnabled = true;
+            this.listBox1.ItemHeight = 12;
+            this.listBox1.Location = new System.Drawing.Point(12, 12);
+            this.listBox1.Name = "listBox1";
+            this.listBox1.ScrollAlwaysVisible = true;
+            this.listBox1.Size = new System.Drawing.Size(479, 256);
+            this.listBox1.TabIndex = 6;
+            // 
             // LogViewer
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(518, 460);
+            this.Controls.Add(this.listBox1);
             this.Controls.Add(this.m_processedPackagesInPool_tbx);
             this.Controls.Add(this.m_packagesInQueue_tbx);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.m_cmdCounter_btn);
             this.Controls.Add(this.m_extraMessage_tbx);
-            this.Controls.Add(this.m_msg_show_tbx);
             this.Name = "LogViewer";
             this.Text = "LogViewer";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.LogViewer_FormClosed);
@@ -135,12 +131,12 @@
 
         #endregion
 
-        private System.Windows.Forms.TextBox m_msg_show_tbx;
         private System.Windows.Forms.TextBox m_extraMessage_tbx;
         private System.Windows.Forms.Button m_cmdCounter_btn;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.TextBox m_packagesInQueue_tbx;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.TextBox m_processedPackagesInPool_tbx;
+        private System.Windows.Forms.ListBox listBox1;
     }
 }

@@ -10,10 +10,11 @@ namespace Octopus.Core
     {
         public IPEndPoint RemoteIP;
         public string Username;
-        public string Messages = string.Empty;
-        public ChatForm Chatter;
         public bool IsReceiveNewMessage;
+        public MessageStore MessageStore = new MessageStore();
 
+        private ChatForm Chatter; 
+        
         public UserInfo(IPEndPoint ipe, string name)
         {
             RemoteIP = ipe;
@@ -25,6 +26,11 @@ namespace Octopus.Core
             return Username;
         }
 
+        public void ExitChatter()
+        {
+            Chatter = null;
+        }
+
         public void ShowChatter()
         {
             if (Chatter == null)
@@ -32,17 +38,15 @@ namespace Octopus.Core
 
             Chatter.Show();
             Chatter.Activate();
+            Chatter.ShowMessage();
 
             IsReceiveNewMessage = false;
         }
 
-        public void AppendMessage(string msg)
+        public void AppendMessage(string msg, string name)
         {
-            if (!string.IsNullOrEmpty(Messages))
-                Messages += "\r\n";
-
-            Messages += msg;
-
+            MessageStore.AppendMessage(msg, name);
+            
             if (Chatter != null)
             {
                 Chatter.ShowMessage();
@@ -57,6 +61,27 @@ namespace Octopus.Core
         public string GetToken()
         {
             return ToUserToken(RemoteIP);
+        }
+
+        public string ToNetString()
+        {
+            return string.Format("{0},{1}", GetToken(), Username);
+        }
+
+        public static UserInfo FromNetString(string netString)
+        {
+            string[] subs = netString.Split(',');
+            if (subs.Length != 2)
+                return null;
+
+            string[] addr_strings = subs[0].Split(':');
+            if (addr_strings.Length != 2)
+                return null;
+
+            IPAddress addr = IPAddress.Parse(addr_strings[0]);
+            int port = int.Parse(addr_strings[1]);
+            string name = subs[1];
+            return new UserInfo(new IPEndPoint(addr, port), name);
         }
 
         public static string ToUserToken(IPEndPoint ipe)
@@ -97,7 +122,9 @@ namespace Octopus.Core
         {
             lock (LockObject)
             {
-                m_users.Add(user.GetToken(), user);
+                string token = user.GetToken();
+                if (!m_users.ContainsKey(token))
+                    m_users.Add(token, user);
             }
         }
 
@@ -107,6 +134,15 @@ namespace Octopus.Core
             {
                 return m_users.Count;
             }
+        }
+
+        public static bool ContainsUser(IPEndPoint ipe)
+        {
+            lock (LockObject)
+            {
+                string key = UserInfo.ToUserToken(ipe);
+                return m_users.ContainsKey(key);
+            }   
         }
 
         public static UserInfo FindUser(IPEndPoint ipe)

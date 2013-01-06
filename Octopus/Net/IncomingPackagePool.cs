@@ -28,14 +28,22 @@ namespace Octopus.Net
             {
                 IPEndPoint iep = new IPEndPoint(IPAddress.Any, 0);
                 EndPoint ep = iep;
+                bool received = false;
 
                 int len = socket.ReceiveFrom(buffer, ref ep);
-                if (len != 0)
+                while (len != 0)
                 {
+                    received = true;
                     Logger.Counter_Pkg_Recv();
                     s_singleton.AddPackage(NetPackage.Parse(buffer, len, (IPEndPoint)ep));
-                    return true;
+
+                    if (socket.Available <= 0)
+                        break;
+
+                    len = socket.ReceiveFrom(buffer, ref ep);
                 }
+
+                return received;
             }
             catch (Exception e)
             {
@@ -49,6 +57,11 @@ namespace Octopus.Net
         {
             if (package == null)
                 return;
+
+            if (package.RemoteEP.Port != NetService.SocketSendPort)
+                return;
+
+            package.RemoteEP.Port = NetService.SocketReadPort;
 
             if (!package.IsRemoveProcessedPackageType)
                 OutgoingPackagePool.AddFirst(NetPackageGenerater.TellReceived(package.ID, package.RemoteEP));
@@ -136,6 +149,24 @@ namespace Octopus.Net
                             break;
                         case NetCommandType.CreateNewGroup:
                             cmd = new NP_CreateNewGroupCmd(data, RemoteEP);
+                            break;
+                        case NetCommandType.CheckUserCount:
+                            cmd = new NP_CheckUserCountCmd(data, RemoteEP);
+                            break;
+                        case NetCommandType.ReturnUserList:
+                            cmd = new NP_ReturnUserListCmd(data, RemoteEP);
+                            break;
+                        case NetCommandType.CheckGroupUserCount:
+                            cmd = new NP_CheckGroupUserCountCmd(data, RemoteEP);
+                            break;
+                        case NetCommandType.ReturnGroupUserList:
+                            cmd = new NP_ReturnGroupUserListCmd(data, RemoteEP);
+                            break;
+                        case NetCommandType.AppendImageMessage:
+                            cmd = new NP_AppendImageMessageCmd(data, RemoteEP);
+                            break;
+                        case NetCommandType.AppendGroupImageMessage:
+                            cmd = new NP_AppendGroupImageMessageCmd(data, RemoteEP);
                             break;
                         
                         default: break;

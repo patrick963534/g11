@@ -22,15 +22,19 @@ namespace Octopus.Core
             return Encoding.UTF8.GetString(bytes);
         }
 
+        public static string GetString(byte[] bytes, int index, int count)
+        {
+            return Encoding.UTF8.GetString(bytes, index, count);
+        }
+
         public static int GetInt(byte[] bytes)
         {
             return BitConverter.ToInt32(bytes, 0);
         }
 
-        public static string FormatMessage(string user, string msg)
+        public static int GetInt(byte[] bytes, int index)
         {
-            return string.Format("[{0}][{1}:{2}:{3}]\r\n{4}\r\n",
-                user, DateTime.Now.Hour, DateTime.Now.Minute, DateTime.Now.Second, msg);
+            return BitConverter.ToInt32(bytes, index);
         }
     }
 }

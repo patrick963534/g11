@@ -9,10 +9,10 @@ namespace Octopus.Core
     {
         public string Key;
         public string Name;
-        public string Messages = string.Empty;
         public GroupChatterForm Chatter;
         public bool IsReceiveNewMessage;
 
+        public MessageStore MessageStore = new MessageStore();
         private Dictionary<string, UserInfo> m_users = new Dictionary<string, UserInfo>();
 
         private GroupInfo()
@@ -75,12 +75,9 @@ namespace Octopus.Core
             IsReceiveNewMessage = false;
         }
 
-        public void AppendMessage(string msg)
+        public void AppendMessage(string msg, string user)
         {
-            if (!string.IsNullOrEmpty(Messages))
-                Messages += "\r\n";
-
-            Messages += msg;
+            MessageStore.AppendMessage(msg, user);
 
             if (Chatter != null)
             {

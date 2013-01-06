@@ -12,13 +12,15 @@ namespace Octopus.Net
 {
     public class NetService
     {
-        public static int ListenPort = 51278;
-        public static int SocketBufferSize = 8192;
+        public static int SocketReadPort = 51868;
+        public static int SocketSendPort = 52668;
+        public static int SocketBufferSize = 81920;
         private static NetService s_singleton = new NetService();
         private static List<NetPackage> s_tempPackages = new List<NetPackage>();
 
         private Thread m_thread;
-        private Socket m_socket;
+        private Socket m_read_socket;
+        private Socket m_send_socket;
         private bool m_isRunning;
         private int log_timer;
         private int user_refresh_timer;
@@ -26,7 +28,7 @@ namespace Octopus.Net
         private NetService()
         {
             OutgoingPackagePool.AddFirst(NetPackageGenerater.BroadcastFindUser());
-            OutgoingPackagePool.AddFirst(NetPackageGenerater.BroadcastFindUser());           
+            OutgoingPackagePool.AddFirst(NetPackageGenerater.BroadcastFindUser());
 
             m_thread = new Thread(new ThreadStart(run));
             m_thread.Name = "Octopus_NetService";
@@ -35,13 +37,20 @@ namespace Octopus.Net
             {
                 m_isRunning = true;
 
-                m_socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-                m_socket.EnableBroadcast = true;
-                m_socket.Blocking = false;
-                m_socket.SendBufferSize = SocketBufferSize;
-                m_socket.ReceiveBufferSize = SocketBufferSize;
-                m_socket.Bind(new IPEndPoint(IPAddress.Any, ListenPort));
-                Logger.WriteLine(UserInfo.ToUserToken((IPEndPoint)m_socket.LocalEndPoint));
+                m_read_socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+                m_read_socket.EnableBroadcast = true;
+                m_read_socket.Blocking = false;
+                m_read_socket.SendBufferSize = SocketBufferSize;
+                m_read_socket.ReceiveBufferSize = SocketBufferSize;
+                m_read_socket.Bind(new IPEndPoint(IPAddress.Any, SocketReadPort));
+                Logger.WriteLine(UserInfo.ToUserToken((IPEndPoint)m_read_socket.LocalEndPoint));
+
+                m_send_socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+                m_send_socket.EnableBroadcast = true;
+                m_send_socket.Blocking = true;
+                m_send_socket.SendBufferSize = SocketBufferSize;
+                m_send_socket.ReceiveBufferSize = SocketBufferSize;
+                m_send_socket.Bind(new IPEndPoint(IPAddress.Any, SocketSendPort));
             }
             catch (System.Exception ex)
             {
@@ -78,10 +87,12 @@ namespace Octopus.Net
                     thread_notify_log_message(ellapse);
                     thread_refresh_user_list(ellapse);
 
-                    IncomingPackagePool.Receive(m_socket);
+                    bool work = false;
+                    work |= IncomingPackagePool.Receive(m_read_socket);
                     thread_command();
+                    work |= thread_outgoing(ellapse);
 
-                    if (thread_outgoing(ellapse))
+                    if (work)
                         Thread.Sleep(4);
                     else
                         Thread.Sleep(60);
@@ -125,7 +136,7 @@ namespace Octopus.Net
                     Logger.WriteLine(string.Format("Send Command: {0}. Package ID: {1}. Target User: {2}", p.CommandID, p.ID, user));
                 }
 
-                m_socket.SendTo(p.Buffer, p.Buffer.Length, SocketFlags.None, p.RemoteEP);
+                int length = m_send_socket.SendTo(p.Buffer, p.Buffer.Length, SocketFlags.None, p.RemoteEP);
             }
 
             OutgoingPackagePool.RemoveDeadProcessed();

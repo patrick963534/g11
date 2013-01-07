@@ -9,6 +9,7 @@ using Octopus.Net;
 using System.Net;
 using Octopus.Core;
 using System.Runtime.InteropServices;
+using System.IO;
 
 namespace Octopus.Controls
 {
@@ -91,7 +92,7 @@ namespace Octopus.Controls
         private void m_sendImage_btn_Click(object sender, EventArgs e)
         {
             OpenFileDialog dlg = new OpenFileDialog();
-            dlg.Filter = "Images(*.gif,*.png,*.jpg)|*.gif;*.png;*.jpg|所有文件(*.*)|*.*";
+            dlg.Filter = "Images(*.gif,*.png,*.jpg)|*.gif;*.png;*.jpg";
             if (dlg.ShowDialog() == DialogResult.OK)
             {
                 m_userinfo.AppendMessage(MsgInputConfig.FormatImageMessage(dlg.FileName), DataManager.WhoAmI);
@@ -101,7 +102,41 @@ namespace Octopus.Controls
 
         private void m_customFace_btn_Click(object sender, EventArgs e)
         {
+            CustomFaceForm form = new CustomFaceForm();
+            form.StartPosition = FormStartPosition.Manual;
+            form.SelectItem += new EventHandler<EventArgs>(select_customface);
+            form.ShowIt(this);
+        }
 
+        private void select_customface(object sender, EventArgs e)
+        {
+            CustomFaceForm form = (CustomFaceForm)sender;
+
+            if (form.CustomFaceItem != null)
+            {
+                string path = Path.Combine(DataManager.GetCustomFaceFolderPath(), form.CustomFaceItem.Filename);
+                m_userinfo.AppendMessage(MsgInputConfig.FormatImageMessage(path), DataManager.WhoAmI);
+                OutgoingPackagePool.AddFirst(NetPackageGenerater.AppendImageMessage(path, m_userinfo.RemoteIP));
+            }
+        }
+
+        private void m_screenShot_btn_Click(object sender, EventArgs e)
+        {
+            ScreenShotForm form = new ScreenShotForm();
+            form.StartPosition = FormStartPosition.CenterScreen;
+            form.SendImage += new EventHandler<EventArgs>(send_screenshot);
+            form.Show();
+        }
+
+        private void send_screenshot(object sender, EventArgs e)
+        {
+            ScreenShotForm form = (ScreenShotForm)sender;
+
+            if (form.ImagePath != null)
+            {
+                m_userinfo.AppendMessage(MsgInputConfig.FormatImageMessage(form.ImagePath), DataManager.WhoAmI);
+                OutgoingPackagePool.AddFirst(NetPackageGenerater.AppendImageMessage(form.ImagePath, m_userinfo.RemoteIP));
+            }
         }
     }
 }

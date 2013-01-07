@@ -17,6 +17,11 @@ namespace Octopus.Controls
             InitializeComponent();
         }
 
+        public void DeleteUser(UserInfo user)
+        {
+            m_users_list.Items.Remove(user);
+        }
+
         public void AddUser(UserInfo user)
         {
             m_users_list.Items.Add(user);
@@ -67,12 +72,6 @@ namespace Octopus.Controls
                             group.AddUser(m_user);
 
                         OutgoingPackagePool.AddFirst(NetPackageGenerater.CreateNewGroup(group.Key, group.Name, m_user.RemoteIP));
-
-                        UserInfo[] users = group.GetUserArray();
-                        foreach (UserInfo usr in users)
-                        {
-                            OutgoingPackagePool.Add(NetPackageGenerater.CheckGroupUserCount(group.Key, users.Length, usr.RemoteIP));
-                        }
                     }
                 }
             }

@@ -26,9 +26,9 @@ namespace Octopus.Core
                 }
                 sw.Close();
             }
-            catch
+            catch (Exception e)
             {
-            	
+                Logger.WriteLine(e.Message);
             }
         }
 
@@ -50,9 +50,9 @@ namespace Octopus.Core
                     GroupInfoManager.AddGroup(new GroupInfo(key, name));
                 }
             }
-            catch
+            catch (Exception e)
             {
-            	
+                Logger.WriteLine(e.Message);
             }
         }
     }

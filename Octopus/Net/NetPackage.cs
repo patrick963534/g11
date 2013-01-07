@@ -180,41 +180,6 @@ namespace Octopus.Net
             return NetPackage.ContentCreate(NetCommandType.CreateNewGroup, Helper.GetBytes(val), iep);
         }
 
-        public static NetPackage[] CheckUserCount(int count, IPEndPoint iep)
-        {
-            return NetPackage.ContentCreate(NetCommandType.CheckUserCount, Helper.GetBytes(count), iep);
-        }
-
-        public static NetPackage[] ReturnUserList(UserInfo[] users, IPEndPoint iep)
-        {
-            StringBuilder builder = new StringBuilder();
-            foreach (UserInfo usr in users)
-            {
-                builder.Append(string.Format("{0}$%$", usr.ToNetString()));
-            }
-
-            return NetPackage.ContentCreate(NetCommandType.ReturnUserList, Helper.GetBytes(builder.ToString()), iep);
-        }
-
-        public static NetPackage[] CheckGroupUserCount(string groupKey, int count, IPEndPoint iep)
-        {
-            string val = groupKey + ";" + count;
-            return NetPackage.ContentCreate(NetCommandType.CheckGroupUserCount, Helper.GetBytes(val), iep);
-        }
-
-        public static NetPackage[] ReturnGroupUserList(string groupKey, UserInfo[] users, IPEndPoint iep)
-        {
-            string splitter = "$%$";
-            StringBuilder builder = new StringBuilder();
-            builder.Append(string.Format("{0}{1}", groupKey, splitter));
-            foreach (UserInfo usr in users)
-            {
-                builder.Append(string.Format("{0},{1}{2}", usr.GetToken(), usr.Username, splitter));
-            }
-
-            return NetPackage.ContentCreate(NetCommandType.ReturnGroupUserList, Helper.GetBytes(builder.ToString()), iep);
-        }
-
         public static NetPackage[] AppendImageMessage(string imagePath, IPEndPoint iep)
         {
             MemoryStream stream = new MemoryStream();
@@ -252,6 +217,25 @@ namespace Octopus.Net
             stream.Dispose();
 
             return NetPackage.ContentCreate(NetCommandType.AppendGroupImageMessage, bytes, iep);
+        }
+
+        public static NetPackage[] UserOffline(IPEndPoint iep)
+        {
+            return NetPackage.ContentCreate(NetCommandType.UserOffline, Helper.GetBytes(DataManager.WhoAmI), iep);
+        }
+
+        public static NetPackage[] VersionUpdate(byte[] updateFileData, IPEndPoint iep)
+        {
+            byte[] bytes = Helper.GetBytes(DataManager.Version);
+            MemoryStream ms = new MemoryStream();
+
+            ms.Write(Helper.GetBytes(bytes.Length), 0, 4);
+            ms.Write(bytes, 0, bytes.Length);
+
+            ms.Write(Helper.GetBytes(updateFileData.Length), 0, 4);
+            ms.Write(updateFileData, 0, updateFileData.Length);
+
+            return NetPackage.ContentCreate(NetCommandType.UserOffline, ms.ToArray(), iep);
         }
     }
 }

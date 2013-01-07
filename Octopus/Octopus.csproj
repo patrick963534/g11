@@ -102,6 +102,12 @@
     <Compile Include="Controls\LogViewer.Designer.cs">
       <DependentUpon>LogViewer.cs</DependentUpon>
     </Compile>
+    <Compile Include="Controls\ScreenShotForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Controls\ScreenShotForm.Designer.cs">
+      <DependentUpon>ScreenShotForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="Controls\TouchVerify.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -170,6 +176,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Controls\LogViewer.resx">
       <DependentUpon>LogViewer.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Controls\ScreenShotForm.resx">
+      <DependentUpon>ScreenShotForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Controls\TouchVerify.resx">
       <DependentUpon>TouchVerify.cs</DependentUpon>

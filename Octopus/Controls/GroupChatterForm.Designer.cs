@@ -33,6 +33,8 @@
             this.m_sendImage_btn = new System.Windows.Forms.Button();
             this.m_customFace_btn = new System.Windows.Forms.Button();
             this.msgRichViewer1 = new Octopus.Controls.ChatControls.MsgRichViewer();
+            this.m_refresh_bt = new System.Windows.Forms.Button();
+            this.m_screenShot_btn = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // m_msg_input_tbx
@@ -55,7 +57,7 @@
             this.m_user_list.ItemHeight = 12;
             this.m_user_list.Location = new System.Drawing.Point(378, 26);
             this.m_user_list.Name = "m_user_list";
-            this.m_user_list.Size = new System.Drawing.Size(146, 352);
+            this.m_user_list.Size = new System.Drawing.Size(146, 316);
             this.m_user_list.TabIndex = 6;
             this.m_user_list.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.m_user_list_MouseDoubleClick);
             // 
@@ -72,6 +74,7 @@
             // 
             // m_customFace_btn
             // 
+            this.m_customFace_btn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.m_customFace_btn.Location = new System.Drawing.Point(213, 253);
             this.m_customFace_btn.Name = "m_customFace_btn";
             this.m_customFace_btn.Size = new System.Drawing.Size(75, 23);
@@ -90,11 +93,34 @@
             this.msgRichViewer1.Size = new System.Drawing.Size(360, 240);
             this.msgRichViewer1.TabIndex = 7;
             // 
+            // m_refresh_bt
+            // 
+            this.m_refresh_bt.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.m_refresh_bt.Location = new System.Drawing.Point(449, 354);
+            this.m_refresh_bt.Name = "m_refresh_bt";
+            this.m_refresh_bt.Size = new System.Drawing.Size(75, 23);
+            this.m_refresh_bt.TabIndex = 10;
+            this.m_refresh_bt.Text = "Refresh";
+            this.m_refresh_bt.UseVisualStyleBackColor = true;
+            this.m_refresh_bt.Click += new System.EventHandler(this.m_refresh_bt_Click);
+            // 
+            // m_screenShot_btn
+            // 
+            this.m_screenShot_btn.Location = new System.Drawing.Point(132, 253);
+            this.m_screenShot_btn.Name = "m_screenShot_btn";
+            this.m_screenShot_btn.Size = new System.Drawing.Size(75, 23);
+            this.m_screenShot_btn.TabIndex = 12;
+            this.m_screenShot_btn.Text = "截屏";
+            this.m_screenShot_btn.UseVisualStyleBackColor = true;
+            this.m_screenShot_btn.Click += new System.EventHandler(this.m_screenShot_btn_Click);
+            // 
             // GroupChatterForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(534, 390);
+            this.Controls.Add(this.m_screenShot_btn);
+            this.Controls.Add(this.m_refresh_bt);
             this.Controls.Add(this.m_customFace_btn);
             this.Controls.Add(this.m_sendImage_btn);
             this.Controls.Add(this.msgRichViewer1);
@@ -115,5 +141,7 @@
         private Octopus.Controls.ChatControls.MsgRichViewer msgRichViewer1;
         private System.Windows.Forms.Button m_sendImage_btn;
         private System.Windows.Forms.Button m_customFace_btn;
+        private System.Windows.Forms.Button m_refresh_bt;
+        private System.Windows.Forms.Button m_screenShot_btn;
     }
 }

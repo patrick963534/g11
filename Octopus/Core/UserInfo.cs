@@ -118,6 +118,16 @@ namespace Octopus.Core
             }
         }
 
+        public static void DeleteUser(UserInfo user)
+        {
+            lock (LockObject)
+            {
+                string token = user.GetToken();
+                if (m_users.ContainsKey(token))
+                    m_users.Remove(token);
+            }
+        }
+
         public static void AddUser(UserInfo user)
         {
             lock (LockObject)

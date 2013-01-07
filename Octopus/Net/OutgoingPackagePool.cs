@@ -59,7 +59,7 @@ namespace Octopus.Net
         {
             lock (m_lockobject)
             {
-                Logger.WriteLine(string.Format("Remove package with ID: {0}", packageID));
+                //Logger.WriteLine(string.Format("Remove package with ID: {0}", packageID));
                 s_singleton.m_processed.Remove(packageID);
             }  
         }

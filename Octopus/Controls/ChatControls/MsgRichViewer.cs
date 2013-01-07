@@ -33,5 +33,11 @@ namespace Octopus.Controls.ChatControls
 
             m_msgViewer.Document.Window.ScrollTo(0, Int16.MaxValue);
         }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            base.OnPaint(e);
+            m_msgViewer.Document.Window.ScrollTo(0, Int16.MaxValue);
+        }
     }
 }

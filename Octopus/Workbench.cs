@@ -77,10 +77,30 @@ namespace Octopus
                 UserInfoManager.AddUser(user);
 
                 s_singleton.m_users.AddUser(user);
+            }));
+        }
 
-                if (UserInfoManager.GetUserCount() == 2 && user.Username != DataManager.WhoAmI)
+        public static void ClientLeave(IPEndPoint remoteIP)
+        {
+            UserInfo user = UserInfoManager.FindUser(remoteIP);
+
+            if (user == null)
+                return;
+
+            s_singleton.Invoke(new DoAction(delegate
+            {
+                IPAddress addr = remoteIP.Address;
+                int port = remoteIP.Port;
+
+                Logger.WriteLine(string.Format("User Leave: {0}, IP: {1}", user.Username, user.RemoteIP));
+
+                UserInfoManager.DeleteUser(user);
+                s_singleton.m_users.DeleteUser(user);
+
+                GroupInfo[] groups = GroupInfoManager.GetGroupArray();
+                foreach (GroupInfo group in groups)
                 {
-                    OutgoingPackagePool.AddFirst(NetPackageGenerater.CheckUserCount(1, remoteIP));
+                    group.DeleteUser(user);
                 }
             }));
         }
@@ -95,11 +115,6 @@ namespace Octopus
                 Logger.WriteLine(string.Format("Group: {0}, Add user: {1}", group.Name, user.Username));
 
                 group.AddUser(user);
-
-                if (group.GetUserCount() == 2 && user.Username != DataManager.WhoAmI)
-                {
-                    OutgoingPackagePool.AddFirst(NetPackageGenerater.CheckGroupUserCount(group.Key, 1, user.RemoteIP));
-                }
             }));
         }
 
@@ -151,12 +166,26 @@ namespace Octopus
             {
                 GroupConfig.Save();
 
-                s_singleton.m_really_close = true;
-                s_singleton.m_tray.Visible = false;
-                NetService.Stop();
-                TouchVerifyCore.Stop();
-                Application.Exit();
+                Timer quitTimer = new Timer();
+                quitTimer.Interval = 500;
+                quitTimer.Tick += new EventHandler(quitTimer_Tick);
+                quitTimer.Start();
+
+                UserInfo[] users = UserInfoManager.GetUserArray();
+                foreach (UserInfo user in users)
+                {
+                    OutgoingPackagePool.AddFirst(NetPackageGenerater.UserOffline(user.RemoteIP));
+                }
             }));
+        }
+
+        static void quitTimer_Tick(object sender, EventArgs e)
+        {
+            s_singleton.m_really_close = true;
+            s_singleton.m_tray.Visible = false;
+            NetService.Stop();
+            TouchVerifyCore.Stop();
+            Application.Exit();
         }
 
         private void m_tray_Click(object sender, EventArgs e)
@@ -201,6 +230,9 @@ namespace Octopus
         private void m_add_client_btn_Click(object sender, EventArgs e)
         {
             OutgoingPackagePool.AddFirst(NetPackageGenerater.BroadcastFindUser());
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
         }
 
         private void m_logger_btn_Click(object sender, EventArgs e)

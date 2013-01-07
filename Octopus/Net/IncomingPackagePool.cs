@@ -122,7 +122,8 @@ namespace Octopus.Net
                     byte[] data = content.CombineData();
 
                     Logger.CounterCommand_Recv(content.CommandType);
-                    Logger.WriteLine("Recv Command: " + content.CommandType.ToString());
+                    if (content.CommandType != NetCommandType.RemoveProcessedPackage)
+                        Logger.WriteLine("Recv Command: " + content.CommandType.ToString());
 
                     switch (content.CommandType)
                     {
@@ -150,23 +151,17 @@ namespace Octopus.Net
                         case NetCommandType.CreateNewGroup:
                             cmd = new NP_CreateNewGroupCmd(data, RemoteEP);
                             break;
-                        case NetCommandType.CheckUserCount:
-                            cmd = new NP_CheckUserCountCmd(data, RemoteEP);
-                            break;
-                        case NetCommandType.ReturnUserList:
-                            cmd = new NP_ReturnUserListCmd(data, RemoteEP);
-                            break;
-                        case NetCommandType.CheckGroupUserCount:
-                            cmd = new NP_CheckGroupUserCountCmd(data, RemoteEP);
-                            break;
-                        case NetCommandType.ReturnGroupUserList:
-                            cmd = new NP_ReturnGroupUserListCmd(data, RemoteEP);
-                            break;
                         case NetCommandType.AppendImageMessage:
                             cmd = new NP_AppendImageMessageCmd(data, RemoteEP);
                             break;
                         case NetCommandType.AppendGroupImageMessage:
                             cmd = new NP_AppendGroupImageMessageCmd(data, RemoteEP);
+                            break;
+                        case NetCommandType.UserOffline:
+                            cmd = new NP_UserOfflineCmd(data, RemoteEP);
+                            break;
+                        case NetCommandType.VersionUpdate:
+                            cmd = new NP_VersionUpdateCmd(data, RemoteEP);
                             break;
                         
                         default: break;

@@ -5,6 +5,7 @@ using Octopus.Net;
 using Octopus.Core;
 using System.Net;
 using System.IO;
+using System.Diagnostics;
 
 namespace Octopus.Commands
 {
@@ -18,6 +19,7 @@ namespace Octopus.Commands
 
         BroadcastFindUser,
         AddUser,
+        UserOffline,
 
         FindGroupUser,
         AddGroupUser,
@@ -25,17 +27,23 @@ namespace Octopus.Commands
         AppendGroupImageMessage,
         CreateNewGroup,
 
-        CheckUserCount,
-        ReturnUserList,
-        CheckGroupUserCount,
-        ReturnGroupUserList,
+        VersionUpdate,
     }
 
     public abstract class Cmd
     {
         public void Execute()
         {
-            ExecuteImpl();
+            try
+            {
+                ExecuteImpl();
+            }
+            catch (System.Exception ex)
+            {
+                Logger.WriteLine(string.Format("Execute command: {0}", this.GetType().ToString()));
+                Logger.WriteLine(ex.Message);
+                Logger.WriteLine(ex.StackTrace);
+            }            
         }
 
         protected abstract void ExecuteImpl();
@@ -202,107 +210,6 @@ namespace Octopus.Commands
         }
     }
 
-    public class NP_CheckUserCountCmd : Cmd
-    {
-        private int m_count;
-        private IPEndPoint m_remoteIP;
-
-        public NP_CheckUserCountCmd(byte[] data, IPEndPoint remoteIP)
-        {
-            m_count = Helper.GetInt(data);
-            m_remoteIP = remoteIP;
-        }
-
-        protected override void ExecuteImpl()
-        {
-            int current = UserInfoManager.GetUserCount();
-
-            if (m_count < current)
-            {
-                OutgoingPackagePool.AddFirst(NetPackageGenerater.ReturnUserList(UserInfoManager.GetUserArray(), m_remoteIP));
-            }
-        }
-    }
-
-    public class NP_ReturnUserListCmd : Cmd
-    {
-        private string[] m_usrNetStrings;
-
-        public NP_ReturnUserListCmd(byte[] data, IPEndPoint remoteIP)
-        {
-            string val = Helper.GetString(data);
-            m_usrNetStrings = val.Split(new string[] { "$%$" }, StringSplitOptions.RemoveEmptyEntries);
-        }
-
-        protected override void ExecuteImpl()
-        {
-            UserInfo lastUser = null;
-            foreach (string ns in m_usrNetStrings)
-            {
-                lastUser = UserInfo.FromNetString(ns);
-                Workbench.AddClient(lastUser.Username, lastUser.RemoteIP);
-            }
-        }
-    }
-
-    public class NP_CheckGroupUserCountCmd : Cmd
-    {
-        private string m_groupKey;
-        private int m_count;
-        private IPEndPoint m_remoteIP;
-
-        public NP_CheckGroupUserCountCmd(byte[] data, IPEndPoint remoteIP)
-        {
-            string val = Helper.GetString(data);
-            int pos = val.IndexOf(';');
-
-            m_groupKey = val.Substring(0, pos);
-            m_count = int.Parse(val.Substring(pos + 1));
-            m_remoteIP = remoteIP;
-        }
-
-        protected override void ExecuteImpl()
-        {
-            GroupInfo group = GroupInfoManager.FindGroup(m_groupKey);
-            if (group != null)
-            {
-                if (group.GetUserCount() > m_count)
-                {
-                    OutgoingPackagePool.AddFirst(NetPackageGenerater.ReturnGroupUserList(m_groupKey, group.GetUserArray(), m_remoteIP));
-                }
-            }
-        }
-    }
-
-    public class NP_ReturnGroupUserListCmd : Cmd
-    {
-        private string[] m_subs;
-
-        public NP_ReturnGroupUserListCmd(byte[] data, IPEndPoint remoteIP)
-        {
-            string val = Helper.GetString(data);
-            m_subs = val.Split(new string[] { "$%$" }, StringSplitOptions.RemoveEmptyEntries);
-        }
-
-        protected override void ExecuteImpl()
-        {
-            if (m_subs.Length == 0)
-                return;
-
-            string groupKey = m_subs[0];
-            GroupInfo group = GroupInfoManager.FindGroup(groupKey);
-            if (group == null)
-                return;
-
-            UserInfo lastUser = null;
-            for (int i = 1; i < m_subs.Length; i++)
-            {
-                lastUser = UserInfo.FromNetString(m_subs[i]);
-                Workbench.GroupAddUser(group, lastUser);
-            }
-        }
-    }
-
     public class NP_AppendImageMessageCmd : Cmd
     {
         private string m_filename;
@@ -365,6 +272,67 @@ namespace Octopus.Commands
                 return;
 
             m_group.AppendMessage(MsgInputConfig.FormatImageMessage(m_filename), m_user.Username);
+        }
+    }
+
+    public class NP_UserOfflineCmd : Cmd
+    {
+        private IPEndPoint m_remoteIP;
+        private string m_name;
+
+        public NP_UserOfflineCmd(byte[] data, IPEndPoint remoteIP)
+        {
+            m_remoteIP = new IPEndPoint(remoteIP.Address, remoteIP.Port);
+            m_name = Encoding.UTF8.GetString(data);
+        }
+
+        protected override void ExecuteImpl()
+        {
+            if (m_name == DataManager.WhoAmI)
+                return;
+
+            Workbench.ClientLeave(m_remoteIP);
+        }
+    }
+
+    public class NP_VersionUpdateCmd : Cmd
+    {
+        private IPEndPoint m_remoteIP;
+        private string m_version;
+        private byte[] m_updateFileData;
+
+        public NP_VersionUpdateCmd(byte[] data, IPEndPoint remoteIP)
+        {
+            m_remoteIP = new IPEndPoint(remoteIP.Address, remoteIP.Port);
+            MemoryStream ms = new MemoryStream(data);
+
+            byte[] lengthBytes = new byte[4];
+            ms.Read(lengthBytes, 0, lengthBytes.Length);
+            byte[] dataBytes = new byte[Helper.GetInt(lengthBytes)];
+            ms.Read(dataBytes, 0, dataBytes.Length);
+            m_version = Helper.GetString(dataBytes);
+
+            lengthBytes = new byte[4];
+            ms.Read(lengthBytes, 0, lengthBytes.Length);
+            m_updateFileData = new byte[Helper.GetInt(lengthBytes)];
+            ms.Read(m_updateFileData, 0, m_updateFileData.Length);
+        }
+
+        protected override void ExecuteImpl()
+        {
+            if (String.Compare(m_version, DataManager.Version) > 0)
+            {
+                if (File.Exists(DataManager.UpdatingFile))
+                    File.Delete(DataManager.UpdatingFile);
+
+                File.WriteAllBytes(DataManager.UpdatingFile, m_updateFileData);
+
+                if (!DataManager.InDevelopment)
+                {
+                    Process.Start("\"" + DataManager.UpdatingFile + "\"");
+                    Workbench.ExitForm();
+                }
+            }            
         }
     }
 }

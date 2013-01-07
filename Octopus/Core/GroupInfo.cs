@@ -48,6 +48,18 @@ namespace Octopus.Core
             return m_users.ContainsKey(user.GetToken());
         }
 
+        public void DeleteUser(UserInfo user)
+        {
+            string token = user.GetToken();
+            if (m_users.ContainsKey(token))
+            {
+                m_users.Remove(token);
+
+                if (Chatter != null)
+                    Chatter.DeleteUser(user);
+            }
+        }
+
         public void AddUser(UserInfo user)
         {
             if (m_users.ContainsKey(user.GetToken()))

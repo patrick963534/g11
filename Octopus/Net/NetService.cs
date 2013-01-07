@@ -133,7 +133,9 @@ namespace Octopus.Net
                         user = userinfo.Username;
 
                     Logger.CounterCommand_Send((NetCommandType)p.CommandID);
-                    Logger.WriteLine(string.Format("Send Command: {0}. Package ID: {1}. Target User: {2}", p.CommandID, p.ID, user));
+
+                    if (!p.IsRemoveProcessedPackageType)
+                        Logger.WriteLine(string.Format("Send Command: {0}. Package ID: {1}. Target User: {2}", p.CommandID, p.ID, user));
                 }
 
                 int length = m_send_socket.SendTo(p.Buffer, p.Buffer.Length, SocketFlags.None, p.RemoteEP);

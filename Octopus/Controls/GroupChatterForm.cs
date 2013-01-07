@@ -36,9 +36,16 @@ namespace Octopus.Controls
             this.Text = string.Format("{0} - 房间({1})", m_group.Name, m_group.Key);
         }
 
+        public void DeleteUser(UserInfo user)
+        {
+            if (m_user_list.Items.Contains(user))
+                m_user_list.Items.Remove(user);
+        }
+
         public void AddUser(UserInfo user)
         {
-            m_user_list.Items.Add(user);
+            if (!m_user_list.Items.Contains(user))
+                m_user_list.Items.Add(user);
         }
 
         public void ShowMessage()
@@ -117,7 +124,7 @@ namespace Octopus.Controls
         private void m_sendImage_btn_Click(object sender, EventArgs e)
         {
             OpenFileDialog dlg = new OpenFileDialog();
-            dlg.Filter = "Images(*.gif,*.png,*.jpg)|*.gif;*.png;*.jpg|所有文件(*.*)|*.*";
+            dlg.Filter = "Images(*.gif,*.png,*.jpg)|*.gif;*.png;*.jpg";
             if (dlg.ShowDialog() == DialogResult.OK)
             {
                 byte[] imageData = File.ReadAllBytes(dlg.FileName);
@@ -131,7 +138,54 @@ namespace Octopus.Controls
 
         private void m_customFace_btn_Click(object sender, EventArgs e)
         {
+            CustomFaceForm form = new CustomFaceForm();
+            form.StartPosition = FormStartPosition.Manual;
+            form.SelectItem += new EventHandler<EventArgs>(select_customface);
+            form.ShowIt(this);
+        }
 
+        private void select_customface(object sender, EventArgs e)
+        {
+            CustomFaceForm form = (CustomFaceForm)sender;
+            if (form.CustomFaceItem != null)
+            {
+                string path = Path.Combine(DataManager.GetCustomFaceFolderPath(), form.CustomFaceItem.Filename);
+                byte[] imageData = File.ReadAllBytes(path);
+
+                foreach (UserInfo user in m_user_list.Items)
+                {
+                    OutgoingPackagePool.Add(NetPackageGenerater.AppendGroupImageMessage(m_group.Key, path, imageData, user.RemoteIP));
+                }
+            }
+        }
+
+        private void m_refresh_bt_Click(object sender, EventArgs e)
+        {
+            QueryGroupUsers();
+        }
+
+        private void m_screenShot_btn_Click(object sender, EventArgs e)
+        {
+            ScreenShotForm form = new ScreenShotForm();
+            form.StartPosition = FormStartPosition.CenterScreen;
+            form.SendImage += new EventHandler<EventArgs>(send_screenshot);
+            form.Show();
+        }
+
+        private void send_screenshot(object sender, EventArgs e)
+        {
+            ScreenShotForm form = (ScreenShotForm)sender;
+
+            if (form.ImagePath != null)
+            {
+                string path = form.ImagePath;
+                byte[] imageData = File.ReadAllBytes(path);
+
+                foreach (UserInfo user in m_user_list.Items)
+                {
+                    OutgoingPackagePool.Add(NetPackageGenerater.AppendGroupImageMessage(m_group.Key, path, imageData, user.RemoteIP));
+                }
+            }
         }
     }
 }

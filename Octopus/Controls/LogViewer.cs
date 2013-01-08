@@ -22,7 +22,7 @@ namespace Octopus.Controls
             InitializeComponent();
 
             m_timer = new Timer();
-            m_timer.Interval = 1000;
+            m_timer.Interval = 200;
             m_timer.Tick += new EventHandler(m_timer_Tick);
             m_timer.Start();
         }
@@ -53,10 +53,7 @@ namespace Octopus.Controls
 
                 List<string> items = Logger.GetMessageByIdx(ref m_index);
                 if (items != null)
-                {
                     s_singleton.listBox1.Items.AddRange(items.ToArray());
-                    m_index += items.Count;
-                }
             }            
         }
 

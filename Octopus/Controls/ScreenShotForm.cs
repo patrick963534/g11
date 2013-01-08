@@ -88,6 +88,12 @@ namespace Octopus.Controls
             m_finish = true;
         }
 
+        protected override void OnFormClosing(FormClosingEventArgs e)
+        {
+            base.OnFormClosing(e);
+            m_image.Dispose();
+        }
+
         private void timer_Tick(object sender, EventArgs e)
         {
             Invalidate();
@@ -119,10 +125,10 @@ namespace Octopus.Controls
                     m_path = Path.ChangeExtension(m_path, ".png");
                     img.Save(m_path, ImageFormat.Png);
 
-                    CustomFaceManager.AddCustomFace(m_path);
-
                     if (SendImage != null)
                         SendImage(this, null);
+
+                    img.Dispose();
 
                     Close();
                 }

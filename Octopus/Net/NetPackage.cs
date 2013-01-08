@@ -139,8 +139,7 @@ namespace Octopus.Net
         public static NetPackage[] BroadcastFindUser()
         {
             IPEndPoint iep = new IPEndPoint(IPAddress.Broadcast, NetService.SocketReadPort);
-            byte[] data = Encoding.UTF8.GetBytes(DataManager.WhoAmI);
-            return NetPackage.ContentCreate(NetCommandType.BroadcastFindUser, data, iep);
+            return NetPackage.ContentCreate(NetCommandType.BroadcastFindUser, Helper.GetBytes(DataManager.WhoAmI), iep);
         }
 
         public static NetPackage[] AddUser(IPEndPoint iep)
@@ -160,7 +159,7 @@ namespace Octopus.Net
 
         public static NetPackage[] FindGroupUser(string groupKey, IPEndPoint iep)
         {
-            return NetPackage.ContentCreate(NetCommandType.FindGroupUser, Helper.GetBytes(groupKey), iep);
+            return NetPackage.ContentCreate(NetCommandType.FindGroupUser, Helper.GetBytes(groupKey + ";" + DataManager.WhoAmI), iep);
         }
 
         public static NetPackage[] AddGroupUser(string groupKey, IPEndPoint iep)
@@ -235,7 +234,7 @@ namespace Octopus.Net
             ms.Write(Helper.GetBytes(updateFileData.Length), 0, 4);
             ms.Write(updateFileData, 0, updateFileData.Length);
 
-            return NetPackage.ContentCreate(NetCommandType.UserOffline, ms.ToArray(), iep);
+            return NetPackage.ContentCreate(NetCommandType.VersionUpdate, ms.ToArray(), iep);
         }
     }
 }

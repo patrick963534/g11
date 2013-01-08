@@ -124,11 +124,16 @@ namespace Octopus.Commands
     {
         private IPEndPoint m_remoteIP;
         private string m_groupKey;
+        private string m_username;
 
         public NP_FindGroupUserCmd(byte[] data, IPEndPoint remoteIP)
         {
             m_remoteIP = new IPEndPoint(remoteIP.Address, remoteIP.Port);
-            m_groupKey = Helper.GetString(data);
+            string[] val = Helper.GetString(data).Split(new char[]{';'});
+
+            m_groupKey = val[0];
+            if (val.Length == 2)
+                m_username = val[1];
         }
 
         protected override void ExecuteImpl()
@@ -136,8 +141,13 @@ namespace Octopus.Commands
             if (string.IsNullOrEmpty(m_groupKey))
                 return;
 
+            UserInfo usr = UserInfoManager.FindUser(m_remoteIP);
+            if (usr == null)
+                Workbench.AddClient(m_username, m_remoteIP);
+
             if (GroupInfoManager.FindGroup(m_groupKey) != null)
             {
+                Workbench.GroupAddUser(GroupInfoManager.FindGroup(m_groupKey), usr);
                 OutgoingPackagePool.AddFirst(NetPackageGenerater.AddGroupUser(m_groupKey, m_remoteIP));
             }
         }

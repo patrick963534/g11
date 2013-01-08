@@ -21,6 +21,7 @@ namespace Octopus.Controls
 
         private int m_pageIndex;
         private int m_preview_idx = -1;
+        private bool m_avoidclose;
 
         private CustomFaceItem m_item;
 
@@ -137,13 +138,17 @@ namespace Octopus.Controls
         protected override void OnDeactivate(EventArgs e)
         {
             base.OnDeactivate(e);
-            Close();
+
+            if (!m_avoidclose)
+                Close();
         }
 
         protected override void OnLostFocus(EventArgs e)
         {
             base.OnLostFocus(e);
-            Close();
+
+            if (!m_avoidclose)
+                Close();
         }
 
         private void CustomFaceForm_Click(object sender, EventArgs e)
@@ -173,6 +178,7 @@ namespace Octopus.Controls
 
         private void m_add_btn_Click(object sender, EventArgs e)
         {
+            m_avoidclose = true;
             OpenFileDialog dlg = new OpenFileDialog();
             dlg.Multiselect = true;
             dlg.Filter = "Images(*.gif,*.png,*.jpg)|*.gif;*.png;*.jpg|所有文件(*.*)|*.*";
@@ -184,7 +190,8 @@ namespace Octopus.Controls
                 }
                 
                 this.Invalidate();
-            }   
+            }
+            m_avoidclose = false;
         }
     }
 }

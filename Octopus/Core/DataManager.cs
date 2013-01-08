@@ -11,7 +11,7 @@ namespace Octopus.Core
 
         private static string m_normalFile = "Octopus.exe";
         private static string m_updateFile = "Octopus_update.exe";
-        public static string Version = "1.98.1";
+        public static string Version = "1.98.96";
         public static bool InDevelopment = false;
 
         private static string CustomFaceFolderName = "CustomFace";

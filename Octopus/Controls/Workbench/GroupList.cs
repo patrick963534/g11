@@ -49,6 +49,17 @@ namespace Octopus.Controls
             gi.ShowChatter();
         }
 
+        private static void CreateGroup()
+        {
+            CreateGroupForm dlg = new CreateGroupForm();
+            dlg.StartPosition = FormStartPosition.CenterParent;
+            if (dlg.ShowDialog() == DialogResult.OK)
+            {
+                GroupInfo info = GroupInfo.Create(dlg.GroupName);
+                Workbench.AddGroup(info.Key, info.Name);
+            }
+        }
+
         private class GroupListBoxContextMenu : ContextMenuStrip
         {
             public GroupListBoxContextMenu()
@@ -62,13 +73,7 @@ namespace Octopus.Controls
                 switch (e.ClickedItem.Text)
                 {
                     case "CreateGroup":
-                        CreateGroupForm dlg = new CreateGroupForm();
-                        dlg.StartPosition = FormStartPosition.CenterParent;
-                        if (dlg.ShowDialog() == DialogResult.OK)
-                        {
-                            GroupInfo info = GroupInfo.Create(dlg.GroupName);
-                            Workbench.AddGroup(info.Key, info.Name);
-                        }
+                        CreateGroup();
                         break;
                 }
             }
@@ -82,20 +87,22 @@ namespace Octopus.Controls
             {
                 m_group = group;
 
+                this.Items.Add("CreateGroup");
                 this.Items.Add("QuitGroup");
                 this.ItemClicked += new ToolStripItemClickedEventHandler(ItemContextMenu_ItemClicked);
             }
 
             void ItemContextMenu_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
             {
-                switch (e.ClickedItem.Text)
+                if (e.ClickedItem.Text == "QuitGroup")
                 {
-                    case "QuitGroup":
-                        string msg = string.Format("你确定要退出房间({0})么?", m_group.Name);
-                        if (MessageBox.Show(msg, "Octopus", MessageBoxButtons.YesNo) == DialogResult.Yes)
-                            Workbench.QuitGroup(m_group);
-                        
-                        break;
+                    string msg = string.Format("你确定要退出房间({0})么?", m_group.Name);
+                    if (MessageBox.Show(msg, "Octopus", MessageBoxButtons.YesNo) == DialogResult.Yes)
+                        Workbench.QuitGroup(m_group);
+                }
+                else if (e.ClickedItem.Text == "CreateGroup")
+                {
+                    CreateGroup();
                 }
             }
         }

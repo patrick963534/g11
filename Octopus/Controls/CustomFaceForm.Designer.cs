@@ -81,6 +81,7 @@
             this.m_preview_pbx.Location = new System.Drawing.Point(263, 12);
             this.m_preview_pbx.Name = "m_preview_pbx";
             this.m_preview_pbx.Size = new System.Drawing.Size(100, 100);
+            this.m_preview_pbx.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.m_preview_pbx.TabIndex = 3;
             this.m_preview_pbx.TabStop = false;
             // 

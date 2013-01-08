@@ -187,5 +187,11 @@ namespace Octopus.Controls
                 }
             }
         }
+
+        private void m_rawMessage_btn_Click(object sender, EventArgs e)
+        {
+            RawMessageForm form = new RawMessageForm(m_group.MessageStore);
+            form.Show();
+        }
     }
 }

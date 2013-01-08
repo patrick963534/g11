@@ -126,10 +126,13 @@ namespace Octopus.Net
                         {
                             Logger.Counter_Dead_Pkg();
 
+                            UserInfo info = UserInfoManager.FindUser(pkg.NetPackage.RemoteEP);
+                            string user = (info == null) ? "no user" : info.Username;
+
                             if (pkg.NetPackage.OrderID == 1)
-                                Logger.WriteLine(string.Format("Package with command '{0}' is dead.", (NetCommandType)pkg.NetPackage.CommandID));
+                                Logger.WriteLine(string.Format("Package with command '{0}' is dead. To user: {1}", (NetCommandType)pkg.NetPackage.CommandID, user));
                             else
-                                Logger.WriteLine(string.Format("Part package with command '{0}' is dead.", (NetCommandType)pkg.NetPackage.CommandID));
+                                Logger.WriteLine(string.Format("Part package with command '{0}' is dead. To user: {}", (NetCommandType)pkg.NetPackage.CommandID, user));
 
                             m_removedIDs.Add(pkg.NetPackage.ID);
                         }

@@ -12,8 +12,8 @@ namespace Octopus.Net
 {
     public class NetService
     {
-        public static int SocketReadPort = 51868;
-        public static int SocketSendPort = 52668;
+        public static int SocketReadPort = 51668;
+        public static int SocketSendPort = 52868;
         public static int SocketBufferSize = 81920;
         private static NetService s_singleton = new NetService();
         private static List<NetPackage> s_tempPackages = new List<NetPackage>();
@@ -76,34 +76,37 @@ namespace Octopus.Net
         {
             int prev = DateTime.Now.Millisecond;
 
-            try
+            while (m_isRunning)
             {
-                while (m_isRunning)
+                try
                 {
-                    int now = DateTime.Now.Millisecond;
-                    int ellapse = Math.Max(0, now - prev);
-                    prev = now;
+                    while (m_isRunning)
+                    {
+                        int now = DateTime.Now.Millisecond;
+                        int ellapse = Math.Max(0, now - prev);
+                        prev = now;
 
-                    thread_notify_log_message(ellapse);
-                    thread_refresh_user_list(ellapse);
+                        thread_notify_log_message(ellapse);
+                        thread_refresh_user_list(ellapse);
 
-                    bool work = false;
-                    work |= IncomingPackagePool.Receive(m_read_socket);
-                    thread_command();
-                    work |= thread_outgoing(ellapse);
+                        bool work = false;
+                        work |= IncomingPackagePool.Receive(m_read_socket);
+                        thread_command();
+                        work |= thread_outgoing(ellapse);
 
-                    if (work)
-                        Thread.Sleep(4);
-                    else
-                        Thread.Sleep(60);
+                        if (work)
+                            Thread.Sleep(4);
+                        else
+                            Thread.Sleep(60);
+                    }
                 }
-            }
-            catch (System.Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-                Logger.WriteLine(ex.Message);
-                Logger.WriteLine("The NetService is stopped, please restart this tool.");
-            }
+                catch (System.Exception ex)
+                {
+                    MessageBox.Show(ex.Message);
+                    Logger.WriteLine(ex.Message);
+                    Logger.WriteLine("The NetService is stopped, please restart this tool.");
+                }
+            }            
         }
 
         private void thread_command()

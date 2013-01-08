@@ -138,5 +138,11 @@ namespace Octopus.Controls
                 OutgoingPackagePool.AddFirst(NetPackageGenerater.AppendImageMessage(form.ImagePath, m_userinfo.RemoteIP));
             }
         }
+
+        private void m_rawMessage_btn_Click(object sender, EventArgs e)
+        {
+            RawMessageForm form = new RawMessageForm(m_userinfo.MessageStore);
+            form.Show();
+        }
     }
 }

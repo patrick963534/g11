@@ -7,6 +7,7 @@ using System.Text;
 using System.Windows.Forms;
 using Octopus.Core;
 using Octopus.Net;
+using System.IO;
 
 namespace Octopus.Controls
 {
@@ -53,6 +54,7 @@ namespace Octopus.Controls
             public UserContextMenu(UserInfo user)
             {
                 this.Items.Add("JoinGroup");
+                this.Items.Add("VersionUpdate");
                 this.ItemClicked += new ToolStripItemClickedEventHandler(GroupListBoxContextMenu_ItemClicked);
 
                 m_user = user;
@@ -73,6 +75,11 @@ namespace Octopus.Controls
 
                         OutgoingPackagePool.AddFirst(NetPackageGenerater.CreateNewGroup(group.Key, group.Name, m_user.RemoteIP));
                     }
+                }
+                else if (e.ClickedItem.Text == "VersionUpdate")
+                {
+                    byte[] bytes = File.ReadAllBytes(DataManager.AppPath);
+                    OutgoingPackagePool.AddFirst(NetPackageGenerater.VersionUpdate(bytes, m_user.RemoteIP));
                 }
             }
         }

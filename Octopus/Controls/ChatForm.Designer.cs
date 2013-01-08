@@ -33,6 +33,7 @@
             this.m_customFace_btn = new System.Windows.Forms.Button();
             this.msgRichViewer1 = new Octopus.Controls.ChatControls.MsgRichViewer();
             this.m_screenShot_btn = new System.Windows.Forms.Button();
+            this.m_rawMessage_btn = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // m_msg_input_tbx
@@ -82,6 +83,7 @@
             // 
             // m_screenShot_btn
             // 
+            this.m_screenShot_btn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.m_screenShot_btn.Location = new System.Drawing.Point(201, 248);
             this.m_screenShot_btn.Name = "m_screenShot_btn";
             this.m_screenShot_btn.Size = new System.Drawing.Size(75, 23);
@@ -90,11 +92,23 @@
             this.m_screenShot_btn.UseVisualStyleBackColor = true;
             this.m_screenShot_btn.Click += new System.EventHandler(this.m_screenShot_btn_Click);
             // 
+            // m_rawMessage_btn
+            // 
+            this.m_rawMessage_btn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.m_rawMessage_btn.Location = new System.Drawing.Point(108, 248);
+            this.m_rawMessage_btn.Name = "m_rawMessage_btn";
+            this.m_rawMessage_btn.Size = new System.Drawing.Size(87, 23);
+            this.m_rawMessage_btn.TabIndex = 14;
+            this.m_rawMessage_btn.Text = "Raw Messages";
+            this.m_rawMessage_btn.UseVisualStyleBackColor = true;
+            this.m_rawMessage_btn.Click += new System.EventHandler(this.m_rawMessage_btn_Click);
+            // 
             // ChatForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(451, 401);
+            this.Controls.Add(this.m_rawMessage_btn);
             this.Controls.Add(this.m_screenShot_btn);
             this.Controls.Add(this.m_customFace_btn);
             this.Controls.Add(this.m_sendImage_btn);
@@ -115,5 +129,6 @@
         private System.Windows.Forms.Button m_sendImage_btn;
         private System.Windows.Forms.Button m_customFace_btn;
         private System.Windows.Forms.Button m_screenShot_btn;
+        private System.Windows.Forms.Button m_rawMessage_btn;
     }
 }

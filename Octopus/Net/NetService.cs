@@ -102,7 +102,7 @@ namespace Octopus.Net
                 }
                 catch (System.Exception ex)
                 {
-                    MessageBox.Show(ex.Message);
+                    MessageBox.Show(ex.StackTrace);
                     Logger.WriteLine(ex.Message);
                     Logger.WriteLine("The NetService is stopped, please restart this tool.");
                 }

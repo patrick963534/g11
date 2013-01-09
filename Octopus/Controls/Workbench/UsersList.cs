@@ -18,6 +18,12 @@ namespace Octopus.Controls
             InitializeComponent();
         }
 
+        public void UpdateUserList()
+        {
+            m_users_list.Items.Clear();
+            m_users_list.Items.AddRange(UserInfoManager.GetUserArray());
+        }
+
         public void DeleteUser(UserInfo user)
         {
             m_users_list.Items.Remove(user);

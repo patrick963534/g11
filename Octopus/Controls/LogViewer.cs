@@ -7,6 +7,7 @@ using System.Text;
 using System.Windows.Forms;
 using Octopus.Core;
 using Octopus.Net;
+using System.IO;
 
 namespace Octopus.Controls
 {
@@ -31,6 +32,8 @@ namespace Octopus.Controls
         {
             m_timer.Start();
 
+            UpdateMsg();
+
             m_packagesInQueue_tbx.Text = OutgoingPackagePool.GetUnprocessedPackageCount().ToString();
             m_processedPackagesInPool_tbx.Text = OutgoingPackagePool.GetProcessedPackageInPoolCount().ToString();
         }
@@ -40,7 +43,7 @@ namespace Octopus.Controls
             get { return s_singleton != null; }
         }
 
-        public static void UpdateMsg()
+        private static void UpdateMsg()
         {
             if (s_singleton != null)
             {
@@ -57,7 +60,7 @@ namespace Octopus.Controls
             }            
         }
 
-        public static void MakeValid()
+        public static void PopShow()
         {
             if (s_singleton == null)
             {
@@ -66,6 +69,7 @@ namespace Octopus.Controls
 
             s_singleton.Show();
             s_singleton.Activate();
+            s_singleton.WindowState = FormWindowState.Normal;
         }
 
         private void m_cmdCounter_btn_Click(object sender, EventArgs e)
@@ -87,6 +91,24 @@ namespace Octopus.Controls
         {
             s_singleton = null;
             m_index = 0;
+        }
+
+        private void m_saveToFile_btn_Click(object sender, EventArgs e)
+        {
+            SaveFileDialog dlg = new SaveFileDialog();
+            dlg.Filter = "Text File(*.txt)|*.txt";
+            if (dlg.ShowDialog() == DialogResult.OK)
+            {
+                string path = Path.ChangeExtension(dlg.FileName, ".txt");
+                StreamWriter sw = new StreamWriter(path, false);
+                foreach (object obj in listBox1.Items)
+                {
+                    string str = ((string)obj).TrimEnd(new char[] { '\r', '\n'});
+                    sw.WriteLine(str);
+                }
+                sw.Flush();
+                sw.Dispose();
+            }
         }
     }
 }

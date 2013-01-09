@@ -33,10 +33,17 @@ namespace Octopus.Controls
 
             this.Text = string.Format("聊天对象: {0}", userinfo.Username);
 
-            ShowMessage();
+            UpdateMessage();
         }
 
-        public void ShowMessage()
+        public void PopShow()
+        {
+            Show();
+            Activate();
+            WindowState = FormWindowState.Normal;
+        }
+
+        public void UpdateMessage()
         {
             this.Invoke(new DoAction(delegate
             {
@@ -68,7 +75,7 @@ namespace Octopus.Controls
             }
             else if (e.Alt && e.KeyCode == Keys.C)
             {
-                //Close();
+                Close();
             }
         }
 

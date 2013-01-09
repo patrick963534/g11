@@ -48,14 +48,6 @@ namespace Octopus
             MessageBox.Show(e.Exception.Message);
         }
 
-        public static void NotifyUpdateLog()
-        {
-            s_singleton.Invoke(new DoAction(delegate
-            {
-                LogViewer.UpdateMsg();
-            }));
-        }
-
         public static void DoAction(DoAction action)
         {
             s_singleton.Invoke(action);
@@ -63,8 +55,12 @@ namespace Octopus
 
         public static void AddClient(string name, IPEndPoint remoteIP)
         {
-            if (UserInfoManager.FindUser(remoteIP) != null)
+            UserInfo usr = UserInfoManager.FindUser(remoteIP);
+            if (usr != null)
+            {
+                usr.Username = name;
                 return;
+            }
 
             s_singleton.Invoke(new DoAction(delegate
             {
@@ -202,15 +198,23 @@ namespace Octopus
                 {
                     m_trayFlashTimer.FlashingGroup.ShowChatter();
                 }
+                else if (s_singleton.Visible)
+                {
+                    s_singleton.Hide();
+                }
                 else
                 {
                     s_singleton.Show();
-                    s_singleton.Activate();                    
-                }                
+                    s_singleton.Activate();
+                    s_singleton.WindowState = FormWindowState.Normal;
+                }
             }
             else if (mouse_e.Button == MouseButtons.Right)
             {
+                s_singleton.Show();
                 s_singleton.Activate();
+                s_singleton.WindowState = FormWindowState.Normal;
+
                 if (MessageBox.Show("是否退出章鱼?", "Octopus", MessageBoxButtons.YesNo) == DialogResult.Yes)
                 {
                     ExitForm();
@@ -227,8 +231,9 @@ namespace Octopus
             }
         }
 
-        private void m_add_client_btn_Click(object sender, EventArgs e)
+        private void m_refresh_btn_Click(object sender, EventArgs e)
         {
+            m_users.UpdateUserList();
             OutgoingPackagePool.AddFirst(NetPackageGenerater.BroadcastFindUser());
             GC.Collect();
             GC.WaitForPendingFinalizers();
@@ -237,8 +242,12 @@ namespace Octopus
 
         private void m_logger_btn_Click(object sender, EventArgs e)
         {
-            LogViewer.MakeValid();
-            NotifyUpdateLog();
+            LogViewer.PopShow();
+        }
+
+        private void m_setting_btn_Click(object sender, EventArgs e)
+        {
+            CustomConfigForm.PopShow();
         }
 
         private class TrayFlashTimer

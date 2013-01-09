@@ -8,17 +8,23 @@ using System.Windows.Forms;
 using Octopus.Core;
 using System.IO;
 using System.Drawing.Imaging;
-using Octopus.Core.CustomFace;
 
 namespace Octopus.Controls
 {
     public partial class ScreenShotForm : Form
     {
+        enum Status
+        {
+            Normal,
+            Drag,
+            Finish
+        }
+
         private Bitmap m_image;
         private Point m_start;
         private Point m_end;
-        private bool m_dragging;
-        private bool m_finish;
+
+        private Status m_status;
         private string m_path;
 
         public EventHandler<EventArgs> SendImage;
@@ -58,15 +64,24 @@ namespace Octopus.Controls
         {
             base.OnMouseDown(e);
 
-            if (!m_finish && e.Button == MouseButtons.Left)
+            if (m_status == Status.Normal && e.Button == MouseButtons.Left)
             {
-                m_dragging = true;
+                m_status = Status.Drag;
                 m_start = new Point(e.X, e.Y);
                 m_end = new Point(e.X, e.Y);
             }
             else if (e.Button == MouseButtons.Right)
             {
-                Close();
+                if (m_status == Status.Normal)
+                {
+                    Close();
+                }
+                else
+                {
+                    m_status = Status.Normal;
+                    m_start = new Point();
+                    m_end = new Point();
+                }
             }
         }
 
@@ -74,18 +89,16 @@ namespace Octopus.Controls
         {
             base.OnMouseMove(e);
 
-            if (m_dragging)
-            {
+            if (m_status == Status.Drag)
                 m_end = e.Location;
-            }
         }
 
         protected override void OnMouseUp(MouseEventArgs e)
         {
             base.OnMouseUp(e);
 
-            m_dragging = false;
-            m_finish = true;
+            if (m_status == Status.Drag)
+                m_status = Status.Finish;
         }
 
         protected override void OnFormClosing(FormClosingEventArgs e)
@@ -104,7 +117,7 @@ namespace Octopus.Controls
             base.OnDoubleClick(e);
             MouseEventArgs me = (MouseEventArgs)e;
 
-            if (me.Button == MouseButtons.Left)
+            if (m_status == Status.Finish && me.Button == MouseButtons.Left)
             {
                 int minx = Math.Min(m_start.X, m_end.X);
                 int miny = Math.Min(m_start.Y, m_end.Y);
@@ -134,10 +147,9 @@ namespace Octopus.Controls
                 }
             }
 
-            m_finish = false;
+            m_status = Status.Normal;
             m_start = new Point();
             m_end = new Point();
-            Invalidate();
         }
 
         protected override void OnPaint(PaintEventArgs e)
@@ -145,6 +157,7 @@ namespace Octopus.Controls
             base.OnPaint(e);
 
             e.Graphics.DrawImage(m_image, 0, 0);
+            e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(50, 0, 0, 0)), 0, 0, Size.Width, Size.Height);
 
             int minx = Math.Min(m_start.X, m_end.X);
             int miny = Math.Min(m_start.Y, m_end.Y);
@@ -153,7 +166,7 @@ namespace Octopus.Controls
 
             if (minx != maxx && miny != maxy)
             {
-                e.Graphics.DrawRectangle(Pens.Black, minx, miny, maxx - minx, maxy - miny);
+                e.Graphics.DrawImage(m_image, minx, miny, new Rectangle(minx, miny, maxx - minx, maxy - miny), GraphicsUnit.Pixel);
             }            
         }
     }

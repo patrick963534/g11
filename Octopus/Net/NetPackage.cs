@@ -40,11 +40,6 @@ namespace Octopus.Net
             }
         }
 
-        public bool IsRemoveProcessedPackageType
-        {
-            get { return (CommandID == NetCommandType.RemoveProcessedPackage); }
-        }
-
         public static NetPackage Parse(byte[] buffer, int sz, IPEndPoint ep)
         {
             using (BinaryReader br = new BinaryReader(new MemoryStream(buffer)))

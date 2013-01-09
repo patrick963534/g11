@@ -39,6 +39,17 @@ namespace Octopus.Net
             }
         }
 
+        public static void AddProcessedPackage(NetPackage[] packages)
+        {
+            lock (m_lockobject)
+            {
+                foreach (NetPackage pkg in packages)
+                {
+                    s_singleton.m_processed.Add(pkg.ID, new PackageLife(pkg));
+                }
+            }
+        }
+
         public static int GetUnprocessedPackageCount()
         {
             lock (m_lockobject)
@@ -101,10 +112,9 @@ namespace Octopus.Net
                     if (sz >= NetService.SocketBufferSize)
                         break;
 
-
                     s_singleton.m_unprocessed.RemoveAt(0);
 
-                    if (!pkg.IsRemoveProcessedPackageType)
+                    if (pkg.CommandID != NetCommandType.RemoveProcessedPackage)
                         s_singleton.m_processed.Add(pkg.ID, new PackageLife(pkg));
 
                     pkgs.Add(pkg);
@@ -132,7 +142,7 @@ namespace Octopus.Net
                             if (pkg.NetPackage.OrderID == 1)
                                 Logger.WriteLine(string.Format("Package with command '{0}' is dead. To user: {1}", (NetCommandType)pkg.NetPackage.CommandID, user));
                             else
-                                Logger.WriteLine(string.Format("Part package with command '{0}' is dead. To user: {}", (NetCommandType)pkg.NetPackage.CommandID, user));
+                                Logger.WriteLine(string.Format("Part package with command '{0}' is dead. To user: {1}", (NetCommandType)pkg.NetPackage.CommandID, user));
 
                             m_removedIDs.Add(pkg.NetPackage.ID);
                         }
@@ -158,7 +168,7 @@ namespace Octopus.Net
             {
                 m_pkg = pkg;
                 m_resendCounter = 20;
-                m_timer = 0;
+                m_timer = 300;
 
                 if (s_maxTimes == null)
                 {

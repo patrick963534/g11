@@ -18,7 +18,6 @@ namespace Octopus.Core
             {
                 builder.Append(string.Format("<label style='font-family:{0};font-size:{1};color:{2}'>{3}</label>",
                                 FontName, FontSize, FontColor, line.Replace(" ", "&nbsp")));
-                builder.Append("<br/>");
             }
 
             return builder.ToString();
@@ -26,7 +25,7 @@ namespace Octopus.Core
 
         public static string FormatImageMessage(string imgFilename)
         {
-            return string.Format("<img src='{0}'></img><br/>", imgFilename);
+            return string.Format("<img src='{0}'></img>", imgFilename);
         }
 
         public static string FormatUsername(string user)

@@ -35,6 +35,7 @@
             this.label2 = new System.Windows.Forms.Label();
             this.m_processedPackagesInPool_tbx = new System.Windows.Forms.TextBox();
             this.listBox1 = new System.Windows.Forms.ListBox();
+            this.m_saveToFile_btn = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // m_extraMessage_tbx
@@ -53,7 +54,7 @@
             // m_cmdCounter_btn
             // 
             this.m_cmdCounter_btn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.m_cmdCounter_btn.Location = new System.Drawing.Point(353, 274);
+            this.m_cmdCounter_btn.Location = new System.Drawing.Point(353, 401);
             this.m_cmdCounter_btn.Name = "m_cmdCounter_btn";
             this.m_cmdCounter_btn.Size = new System.Drawing.Size(138, 23);
             this.m_cmdCounter_btn.TabIndex = 3;
@@ -112,11 +113,23 @@
             this.listBox1.Size = new System.Drawing.Size(479, 256);
             this.listBox1.TabIndex = 6;
             // 
+            // m_saveToFile_btn
+            // 
+            this.m_saveToFile_btn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.m_saveToFile_btn.Location = new System.Drawing.Point(353, 274);
+            this.m_saveToFile_btn.Name = "m_saveToFile_btn";
+            this.m_saveToFile_btn.Size = new System.Drawing.Size(138, 23);
+            this.m_saveToFile_btn.TabIndex = 7;
+            this.m_saveToFile_btn.Text = "Save to File";
+            this.m_saveToFile_btn.UseVisualStyleBackColor = true;
+            this.m_saveToFile_btn.Click += new System.EventHandler(this.m_saveToFile_btn_Click);
+            // 
             // LogViewer
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(518, 460);
+            this.Controls.Add(this.m_saveToFile_btn);
             this.Controls.Add(this.listBox1);
             this.Controls.Add(this.m_processedPackagesInPool_tbx);
             this.Controls.Add(this.m_packagesInQueue_tbx);
@@ -141,5 +154,6 @@
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.TextBox m_processedPackagesInPool_tbx;
         private System.Windows.Forms.ListBox listBox1;
+        private System.Windows.Forms.Button m_saveToFile_btn;
     }
 }

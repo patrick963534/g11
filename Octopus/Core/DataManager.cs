@@ -3,15 +3,15 @@ using System.Collections.Generic;
 using System.Text;
 using System.IO;
 using System.Net;
+using System.Security.Principal;
 
 namespace Octopus.Core
 {
     public class DataManager
     {
-
         private static string m_normalFile = "Octopus.exe";
         private static string m_updateFile = "Octopus_update.exe";
-        public static string Version = "1.98.98";
+        public static string Version = "1.99.18";
         public static bool InDevelopment = false;
 
         private static string CustomFaceFolderName = "CustomFace";
@@ -56,7 +56,13 @@ namespace Octopus.Core
 
         public static string WhoAmI
         {
-            get { return string.Format("{0} ({1})", Environment.UserName, Environment.MachineName); }
+            get
+            {
+                string name = CustomConfigure.DisplayName;
+                if (string.IsNullOrEmpty(name))
+                    name = Environment.UserName;
+                return string.Format("{0} ({1})", name, Environment.MachineName);
+            }
         }
 
         public static string StartupAppPath

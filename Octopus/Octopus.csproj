@@ -78,6 +78,12 @@
     <Compile Include="Controls\CreateGroupForm.Designer.cs">
       <DependentUpon>CreateGroupForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="Controls\CustomConfigForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Controls\CustomConfigForm.Designer.cs">
+      <DependentUpon>CustomConfigForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="Controls\CustomFaceForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -132,7 +138,8 @@
     <Compile Include="Controls\Workbench\UsersList.Designer.cs">
       <DependentUpon>UsersList.cs</DependentUpon>
     </Compile>
-    <Compile Include="Core\CustomFace\CustomFaceManager.cs" />
+    <Compile Include="Core\CustomConfigure.cs" />
+    <Compile Include="Core\CustomFaceManager.cs" />
     <Compile Include="Core\DataManager.cs" />
     <Compile Include="Core\GroupConfig.cs" />
     <Compile Include="Core\GroupInfo.cs" />
@@ -170,6 +177,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Controls\CreateGroupForm.resx">
       <DependentUpon>CreateGroupForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Controls\CustomConfigForm.resx">
+      <DependentUpon>CustomConfigForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Controls\CustomFaceForm.resx">
       <DependentUpon>CustomFaceForm.cs</DependentUpon>

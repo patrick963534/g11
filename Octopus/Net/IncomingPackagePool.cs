@@ -63,7 +63,7 @@ namespace Octopus.Net
 
             package.RemoteEP.Port = NetService.SocketReadPort;
 
-            if (!package.IsRemoveProcessedPackageType)
+            if (package.CommandID != NetCommandType.RemoveProcessedPackage)
                 OutgoingPackagePool.AddFirst(NetPackageGenerater.TellReceived(package.ID, package.RemoteEP));
 
             string key = UserInfo.ToUserToken(package.RemoteEP);

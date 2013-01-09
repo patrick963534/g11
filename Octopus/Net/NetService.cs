@@ -22,13 +22,14 @@ namespace Octopus.Net
         private Socket m_read_socket;
         private Socket m_send_socket;
         private bool m_isRunning;
-        private int log_timer;
         private int user_refresh_timer;
 
         private NetService()
         {
             OutgoingPackagePool.AddFirst(NetPackageGenerater.BroadcastFindUser());
             OutgoingPackagePool.AddFirst(NetPackageGenerater.BroadcastFindUser());
+            OutgoingPackagePool.AddProcessedPackage(NetPackageGenerater.BroadcastFindUser());
+            OutgoingPackagePool.AddProcessedPackage(NetPackageGenerater.BroadcastFindUser());
 
             m_thread = new Thread(new ThreadStart(run));
             m_thread.Name = "Octopus_NetService";
@@ -86,7 +87,6 @@ namespace Octopus.Net
                         int ellapse = Math.Max(0, now - prev);
                         prev = now;
 
-                        thread_notify_log_message(ellapse);
                         thread_refresh_user_list(ellapse);
 
                         bool work = false;
@@ -95,7 +95,7 @@ namespace Octopus.Net
                         work |= thread_outgoing(ellapse);
 
                         if (work)
-                            Thread.Sleep(4);
+                            Thread.Sleep(1);
                         else
                             Thread.Sleep(60);
                     }
@@ -130,15 +130,16 @@ namespace Octopus.Net
             {
                 if (p.OrderID == 1)
                 {
-                    UserInfo userinfo = UserInfoManager.FindUser(p.RemoteEP);
-                    string user = "no user";
-                    if (userinfo != null)
-                        user = userinfo.Username;
-
                     Logger.CounterCommand_Send((NetCommandType)p.CommandID);
 
-                    if (!p.IsRemoveProcessedPackageType)
+                    if (p.CommandID != NetCommandType.RemoveProcessedPackage &&
+                        p.CommandID != NetCommandType.AddUser)
+                    {
+                        UserInfo userinfo = UserInfoManager.FindUser(p.RemoteEP);
+                        string user = (userinfo == null) ? "no user" : userinfo.Username;
+
                         Logger.WriteLine(string.Format("Send Command: {0}. Package ID: {1}. Target User: {2}", p.CommandID, p.ID, user));
+                    }
                 }
 
                 int length = m_send_socket.SendTo(p.Buffer, p.Buffer.Length, SocketFlags.None, p.RemoteEP);
@@ -149,16 +150,6 @@ namespace Octopus.Net
             return s_tempPackages.Count != 0;
         }
 
-        private void thread_notify_log_message(int ellapse)
-        {
-            log_timer += ellapse;
-            if (log_timer > 300)
-            {
-                log_timer = 0;
-                Workbench.NotifyUpdateLog();
-            }
-        }
-
         private void thread_refresh_user_list(int ellapse)
         {
             user_refresh_timer += ellapse;
@@ -167,7 +158,6 @@ namespace Octopus.Net
                 user_refresh_timer = 0;
                 OutgoingPackagePool.AddFirst(NetPackageGenerater.BroadcastFindUser());
             }
-
         }
     }
 }

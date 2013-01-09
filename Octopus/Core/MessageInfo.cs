@@ -20,7 +20,7 @@ namespace Octopus.Core
             {
                 string html_usr = MsgInputConfig.FormatUsername(MessageUsers[idx]);
                 string html_msg = Messages[idx];
-                string all = string.Format("{0}</br>{1}", html_usr, html_msg);
+                string all = string.Format("{0}</br>{1}</br>", html_usr, html_msg);
 
                 return all;
             }

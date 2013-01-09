@@ -19,11 +19,6 @@ namespace Octopus.Base
 
         private string m_msg;
 
-        static TouchVerify()
-        {
-            m_singleton = new TouchVerify();
-        }
-
         public TouchVerify()
         {
             InitializeComponent();
@@ -39,9 +34,10 @@ namespace Octopus.Base
 
         public static bool Tell(string msg)
         {
-            if (m_singleton.Visible)
+            if (m_singleton != null)
                 return false;
 
+            m_singleton = new TouchVerify();
             Workbench.DoAction(new DoAction(delegate
             {
                 m_singleton.m_msg = msg;
@@ -53,12 +49,12 @@ namespace Octopus.Base
 
         private void TouchVerify_KeyDown(object sender, KeyEventArgs e)
         {
-            m_singleton.Hide();
+            Close();
         }
 
         private void TouchVerify_Click(object sender, EventArgs e)
         {
-            m_singleton.Hide();
+            Close();
         }
 
         protected override void OnPaint(PaintEventArgs e)

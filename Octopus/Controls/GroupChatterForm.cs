@@ -31,7 +31,7 @@ namespace Octopus.Controls
 
             m_user_list.Items.AddRange(m_group.GetUserArray());
             QueryGroupUsers();
-            ShowMessage();
+            UpdateMessage();
 
             this.Text = string.Format("{0} - 房间({1})", m_group.Name, m_group.Key);
         }
@@ -48,7 +48,14 @@ namespace Octopus.Controls
                 m_user_list.Items.Add(user);
         }
 
-        public void ShowMessage()
+        public void PopShow()
+        {
+            Show();
+            Activate();
+            WindowState = FormWindowState.Normal;
+        }
+
+        public void UpdateMessage()
         {
             this.Invoke(new DoAction(delegate
             {

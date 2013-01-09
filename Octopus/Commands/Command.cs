@@ -32,6 +32,9 @@ namespace Octopus.Commands
 
     public abstract class Cmd
     {
+        public static string TextCommand_IsAlive = "[text_command]anyone_alive?";
+        public static string TextCommand_Version = "[text_command]what_is_your_version?";
+
         public void Execute()
         {
             try
@@ -67,36 +70,48 @@ namespace Octopus.Commands
     public class NP_AppendTextMessageCmd : Cmd
     {
         private string m_text;
-        private UserInfo m_user;
+        private IPEndPoint m_remoteIP;
 
         public NP_AppendTextMessageCmd(byte[] data, IPEndPoint remoteIP)
         {
-            m_text = Encoding.UTF8.GetString(data);
-            m_user = UserInfoManager.FindUser(remoteIP); ;
+            m_text = Helper.GetString(data);
+            m_remoteIP = new IPEndPoint(remoteIP.Address, remoteIP.Port);
         }
 
         protected override void ExecuteImpl()
         {
-            m_user.AppendMessage(m_text, m_user.Username);
+            if (m_text.Contains(TextCommand_IsAlive))
+            {
+                OutgoingPackagePool.AddFirst(NetPackageGenerater.AppendTextMessage(MsgInputConfig.FormatMessage("I'm alive."), m_remoteIP));
+                return;
+            }
+            else if (m_text.Contains(TextCommand_Version))
+            {
+                OutgoingPackagePool.AddFirst(NetPackageGenerater.AppendTextMessage(MsgInputConfig.FormatMessage(DataManager.Version), m_remoteIP));
+                return;
+            }
+
+            UserInfo usr = UserInfoManager.FindUser(m_remoteIP); ;
+            usr.AppendMessage(m_text, usr.Username);
             Logger.WriteLine("Add message:" + m_text);
         }
     }
 
     public class NP_BroadcastFindUserCmd : Cmd
     {
-        private string m_hostname;
+        private string m_username;
         private IPEndPoint m_remoteIP;
 
         public NP_BroadcastFindUserCmd(byte[] data, IPEndPoint remoteIP)
         {
             m_remoteIP = new IPEndPoint(remoteIP.Address, remoteIP.Port);
-            m_hostname = Encoding.UTF8.GetString(data);
+            m_username = Encoding.UTF8.GetString(data);
         }
 
         protected override void ExecuteImpl()
         {
             OutgoingPackagePool.AddFirst(NetPackageGenerater.AddUser(m_remoteIP));
-            Workbench.AddClient(m_hostname, m_remoteIP);
+            Workbench.AddClient(m_username, m_remoteIP);
         }
     }
 
@@ -177,7 +192,7 @@ namespace Octopus.Commands
     {
         private string m_groupKey;
         private string m_text;
-        private UserInfo m_user;
+        private IPEndPoint m_remoteIP;
 
         public NP_AppendGroupTextMessageCmd(byte[] data, IPEndPoint remoteIP)
         {
@@ -187,15 +202,31 @@ namespace Octopus.Commands
             m_groupKey = val.Substring(0, pos);
             m_text = val.Substring(pos + 1);
 
-            m_user = UserInfoManager.FindUser(remoteIP);
+            m_remoteIP = new IPEndPoint(remoteIP.Address, remoteIP.Port);
         }
 
         protected override void ExecuteImpl()
         {
             GroupInfo gi = GroupInfoManager.FindGroup(m_groupKey);
-            if (gi != null && m_user != null)
+
+            if (gi != null)
             {
-                gi.AppendMessage(m_text, m_user.Username);
+                if (m_text.Contains(TextCommand_IsAlive))
+                {
+                    OutgoingPackagePool.AddFirst(NetPackageGenerater.AppendGroupTextMessage(gi.Key, MsgInputConfig.FormatMessage("I'm alive."), m_remoteIP));
+                    return;
+                }
+                else if (m_text.Contains(TextCommand_Version))
+                {
+                    OutgoingPackagePool.AddFirst(NetPackageGenerater.AppendGroupTextMessage(gi.Key, MsgInputConfig.FormatMessage(DataManager.Version), m_remoteIP));
+                    return;
+                }
+            }
+
+            UserInfo usr = UserInfoManager.FindUser(m_remoteIP);
+            if (gi != null && usr != null)
+            {
+                gi.AppendMessage(m_text, usr.Username);
             }
         }
     }

@@ -81,8 +81,7 @@ namespace Octopus.Core
             if (Chatter == null)
                 Chatter = new GroupChatterForm(this);
 
-            Chatter.Show();
-            Chatter.Activate();
+            Chatter.PopShow();
 
             IsReceiveNewMessage = false;
         }
@@ -93,7 +92,7 @@ namespace Octopus.Core
 
             if (Chatter != null)
             {
-                Chatter.ShowMessage();
+                Chatter.UpdateMessage();
                 IsReceiveNewMessage = false;
             }
             else

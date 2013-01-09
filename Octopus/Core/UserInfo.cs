@@ -36,10 +36,7 @@ namespace Octopus.Core
             if (Chatter == null)
                 Chatter = new ChatForm(this);
 
-            Chatter.Show();
-            Chatter.Activate();
-            Chatter.ShowMessage();
-
+            Chatter.PopShow();
             IsReceiveNewMessage = false;
         }
 
@@ -49,7 +46,7 @@ namespace Octopus.Core
             
             if (Chatter != null)
             {
-                Chatter.ShowMessage();
+                Chatter.UpdateMessage();
                 IsReceiveNewMessage = false;
             }
             else

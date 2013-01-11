@@ -11,7 +11,7 @@ namespace Octopus.Core
     {
         private static string m_normalFile = "Octopus.exe";
         private static string m_updateFile = "Octopus_update.exe";
-        public static string m_version = "1.99.28";
+        public static string m_version = "1.99.52";
         public static string m_displayVersion = "1.99.18";
         public static bool InDevelopment = false;
 

@@ -12,13 +12,33 @@ namespace Octopus.Controls.ChatControls
     public partial class MsgRichViewer : UserControl
     {
         private int m_msgIndex;
+        private Timer timer = new Timer();
 
         public MsgRichViewer()
         {
             InitializeComponent();
-            
+
+            timer.Interval = 800;
+            timer.Tick += new EventHandler(timer_Tick);
+
             m_msgViewer.Navigate("about:blank");
             m_msgViewer.Document.Write("<html><body></body></html>");
+
+            timer.Start();
+        }
+
+        void timer_Tick(object sender, EventArgs e)
+        {
+            timer.Stop();
+
+            try
+            {
+                m_msgViewer.Document.Window.ScrollTo(0, m_msgViewer.Document.Body.ScrollRectangle.Height);
+            }
+            catch (System.Exception ex)
+            {
+                Logger.WriteLine(ex.StackTrace);
+            }            
         }
 
         public void UpdateMessages(MessageStore store)
@@ -30,9 +50,8 @@ namespace Octopus.Controls.ChatControls
                 m_msgViewer.Document.Body.AppendChild(he);
                 m_msgIndex++;
             }
-
-            m_msgViewer.Document.Body.ScrollIntoView(false);
-            m_msgViewer.Document.Window.ScrollTo(0, Int16.MaxValue - 1);
+            m_msgViewer.Document.Window.ScrollTo(0, m_msgViewer.Document.Body.ScrollRectangle.Height);
+            timer.Start();
         }
     }
 }

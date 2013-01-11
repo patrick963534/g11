@@ -41,7 +41,7 @@
             this.m_msg_input_tbx.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
             this.m_msg_input_tbx.ImeMode = System.Windows.Forms.ImeMode.On;
-            this.m_msg_input_tbx.Location = new System.Drawing.Point(12, 274);
+            this.m_msg_input_tbx.Location = new System.Drawing.Point(12, 340);
             this.m_msg_input_tbx.Multiline = true;
             this.m_msg_input_tbx.Name = "m_msg_input_tbx";
             this.m_msg_input_tbx.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
@@ -52,7 +52,7 @@
             // m_sendImage_btn
             // 
             this.m_sendImage_btn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.m_sendImage_btn.Location = new System.Drawing.Point(363, 248);
+            this.m_sendImage_btn.Location = new System.Drawing.Point(363, 314);
             this.m_sendImage_btn.Name = "m_sendImage_btn";
             this.m_sendImage_btn.Size = new System.Drawing.Size(61, 23);
             this.m_sendImage_btn.TabIndex = 5;
@@ -63,7 +63,7 @@
             // m_customFace_btn
             // 
             this.m_customFace_btn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.m_customFace_btn.Location = new System.Drawing.Point(282, 248);
+            this.m_customFace_btn.Location = new System.Drawing.Point(282, 314);
             this.m_customFace_btn.Name = "m_customFace_btn";
             this.m_customFace_btn.Size = new System.Drawing.Size(75, 23);
             this.m_customFace_btn.TabIndex = 10;
@@ -78,13 +78,13 @@
                         | System.Windows.Forms.AnchorStyles.Right)));
             this.msgRichViewer1.Location = new System.Drawing.Point(12, 3);
             this.msgRichViewer1.Name = "msgRichViewer1";
-            this.msgRichViewer1.Size = new System.Drawing.Size(427, 243);
+            this.msgRichViewer1.Size = new System.Drawing.Size(427, 309);
             this.msgRichViewer1.TabIndex = 4;
             // 
             // m_screenShot_btn
             // 
             this.m_screenShot_btn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.m_screenShot_btn.Location = new System.Drawing.Point(201, 248);
+            this.m_screenShot_btn.Location = new System.Drawing.Point(201, 314);
             this.m_screenShot_btn.Name = "m_screenShot_btn";
             this.m_screenShot_btn.Size = new System.Drawing.Size(75, 23);
             this.m_screenShot_btn.TabIndex = 11;
@@ -95,7 +95,7 @@
             // m_rawMessage_btn
             // 
             this.m_rawMessage_btn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.m_rawMessage_btn.Location = new System.Drawing.Point(108, 248);
+            this.m_rawMessage_btn.Location = new System.Drawing.Point(108, 314);
             this.m_rawMessage_btn.Name = "m_rawMessage_btn";
             this.m_rawMessage_btn.Size = new System.Drawing.Size(87, 23);
             this.m_rawMessage_btn.TabIndex = 14;
@@ -107,7 +107,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(451, 401);
+            this.ClientSize = new System.Drawing.Size(451, 467);
             this.Controls.Add(this.m_rawMessage_btn);
             this.Controls.Add(this.m_screenShot_btn);
             this.Controls.Add(this.m_customFace_btn);
@@ -115,6 +115,7 @@
             this.Controls.Add(this.msgRichViewer1);
             this.Controls.Add(this.m_msg_input_tbx);
             this.Name = "ChatForm";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "ChatForm";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.ChatForm_FormClosed);
             this.ResumeLayout(false);

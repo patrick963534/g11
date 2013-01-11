@@ -11,8 +11,8 @@ namespace Octopus.Net
     public class NetPackage
     {
         public static int MagicNumber = 0x13572468;
-        public static int CounterPackageID = 1;
-        public static int CounterContentID = 1;
+        public static int CounterPackageID;
+        public static int CounterContentID;
         private static object m_lockobject = new object();
 
         public byte[] Buffer;
@@ -28,6 +28,11 @@ namespace Octopus.Net
         {
             lock (m_lockobject)
             {
+                if (CounterPackageID == 0)
+                {
+                    CounterPackageID = (int)(DateTime.Now.Ticks % int.MaxValue);
+                }
+
                 return CounterPackageID++;
             }
         }
@@ -36,6 +41,11 @@ namespace Octopus.Net
         {
             lock (m_lockobject)
             {
+                if (CounterContentID == 0)
+                {
+                    CounterContentID = (int)(DateTime.Now.Ticks % int.MaxValue);
+                }
+
                 return CounterContentID++;
             }
         }

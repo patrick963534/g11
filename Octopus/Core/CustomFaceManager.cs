@@ -22,11 +22,17 @@ namespace Octopus.Core
 
         private static List<CustomFaceItem> m_items = new List<CustomFaceItem>();
         private static Dictionary<string, string> m_item_names = new Dictionary<string, string>();
+        private static bool m_init;
 
         public const int IconSize = 32;
 
-        static CustomFaceManager()
+        private static void Init()
         {
+            if (m_init)
+                return;
+
+            m_init = true;
+
             string path = GetCustomFaceCfgPath();
             using (FileStream fs = new FileStream(path, FileMode.OpenOrCreate, FileAccess.Read))
             {
@@ -105,6 +111,8 @@ namespace Octopus.Core
 
         public static void AddCustomFace(string imageFilePath)
         {
+            Init();
+
             string name = Path.GetFileName(imageFilePath);
             if (m_item_names.ContainsKey(name))
                 return;
@@ -147,15 +155,31 @@ namespace Octopus.Core
 
         public static int GetItemCount()
         {
+            Init();
+
             return m_items.Count;
         }
 
         public static CustomFaceItem GetItem(int id)
         {
+            Init();
+
             if (id < m_items.Count)
                 return m_items[id];
 
             return null;
+        }
+
+        public static void Dispose()
+        {
+            foreach (CustomFaceItem item in m_items)
+            {
+                item.Icon.Dispose();
+            }
+
+            m_items.Clear();
+            m_item_names.Clear();
+            m_init = false;
         }
     }
 }

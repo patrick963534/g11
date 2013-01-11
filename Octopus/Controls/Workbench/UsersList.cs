@@ -18,20 +18,26 @@ namespace Octopus.Controls
             InitializeComponent();
         }
 
-        public void UpdateUserList()
+        public void UpdateUserName(UserInfo user)
         {
-            m_users_list.Items.Clear();
-            m_users_list.Items.AddRange(UserInfoManager.GetUserArray());
+            int pos = m_users_list.Items.IndexOf(user);
+            m_users_list.Items.RemoveAt(pos);
+            m_users_list.Items.Insert(pos, user);
         }
 
         public void DeleteUser(UserInfo user)
         {
-            m_users_list.Items.Remove(user);
+            if (m_users_list.Items.Contains(user))
+                m_users_list.Items.Remove(user);
         }
 
         public void AddUser(UserInfo user)
         {
-            m_users_list.Items.Add(user);
+            if (!m_users_list.Items.Contains(user))
+            {
+                m_users_list.Items.Add(user);
+                Logger.WriteLine(string.Format("Add User: {0}, IP: {1}", user.Username, user.RemoteIP));
+            }
         }
 
         private void m_users_list_MouseDown(object sender, MouseEventArgs e)

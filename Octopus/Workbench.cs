@@ -27,7 +27,7 @@ namespace Octopus
             InitializeComponent();
             Show();
 
-            this.Text = string.Format("Octopus (v{0})", DataManager.Version);
+            this.Text = string.Format("Octopus (v{0})", DataManager.DisplayVersion);
         }
 
         private void Workbench_Load(object sender, EventArgs e)
@@ -40,7 +40,7 @@ namespace Octopus
             Application.ThreadException += new System.Threading.ThreadExceptionEventHandler(Application_ThreadException);
             TouchVerifyCore.Start();
             NetService.Start();
-            Logger.WriteLine(DataManager.Version);
+            Logger.WriteLine(DataManager.DisplayVersion);
         }
 
         void Application_ThreadException(object sender, System.Threading.ThreadExceptionEventArgs e)
@@ -55,23 +55,30 @@ namespace Octopus
 
         public static void AddClient(string name, IPEndPoint remoteIP)
         {
-            UserInfo usr = UserInfoManager.FindUser(remoteIP);
-            if (usr != null)
-            {
-                usr.Username = name;
-                return;
-            }
-
             s_singleton.Invoke(new DoAction(delegate
             {
                 IPAddress addr = remoteIP.Address;
                 int port = remoteIP.Port;
 
-                Logger.WriteLine(string.Format("Add User: {0}, IP: {1}", name, remoteIP));
+                UserInfo user = UserInfoManager.FindUser(remoteIP);
+                if (user == null)
+                {
+                    user = new UserInfo(new IPEndPoint(addr, port), name);
+                    UserInfoManager.AddUser(user);
 
-                UserInfo user = new UserInfo(new IPEndPoint(addr, port), name);
-                UserInfoManager.AddUser(user);
+                    GroupInfo[] groups = GroupInfoManager.GetGroupArray();
+                    foreach (GroupInfo grp in groups)
+                    {
+                        OutgoingPackagePool.AddFirst(NetPackageGenerater.FindGroupUser(grp.Key, remoteIP));
+                    }
+                }
+                else if (user.Username != name)
+                {
+                    user.Username = name;
+                    s_singleton.m_users.UpdateUserName(user);
+                }
 
+                user.IsAlive = true;
                 s_singleton.m_users.AddUser(user);
             }));
         }
@@ -90,7 +97,7 @@ namespace Octopus
 
                 Logger.WriteLine(string.Format("User Leave: {0}, IP: {1}", user.Username, user.RemoteIP));
 
-                UserInfoManager.DeleteUser(user);
+                user.IsAlive = false;
                 s_singleton.m_users.DeleteUser(user);
 
                 GroupInfo[] groups = GroupInfoManager.GetGroupArray();
@@ -109,7 +116,6 @@ namespace Octopus
             s_singleton.Invoke(new DoAction(delegate
             {
                 Logger.WriteLine(string.Format("Group: {0}, Add user: {1}", group.Name, user.Username));
-
                 group.AddUser(user);
             }));
         }
@@ -117,6 +123,9 @@ namespace Octopus
         public static void AddGroup(string groupKey, string name)
         {
             if (string.IsNullOrEmpty(groupKey) || string.IsNullOrEmpty(name))
+                return;
+
+            if (GroupInfoManager.FindGroup(groupKey) != null)
                 return;
 
             s_singleton.Invoke(new DoAction(delegate
@@ -233,7 +242,6 @@ namespace Octopus
 
         private void m_refresh_btn_Click(object sender, EventArgs e)
         {
-            m_users.UpdateUserList();
             OutgoingPackagePool.AddFirst(NetPackageGenerater.BroadcastFindUser());
             GC.Collect();
             GC.WaitForPendingFinalizers();

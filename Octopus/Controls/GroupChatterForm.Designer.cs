@@ -43,7 +43,7 @@
             this.m_msg_input_tbx.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
             this.m_msg_input_tbx.ImeMode = System.Windows.Forms.ImeMode.On;
-            this.m_msg_input_tbx.Location = new System.Drawing.Point(12, 280);
+            this.m_msg_input_tbx.Location = new System.Drawing.Point(12, 340);
             this.m_msg_input_tbx.Multiline = true;
             this.m_msg_input_tbx.Name = "m_msg_input_tbx";
             this.m_msg_input_tbx.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
@@ -59,14 +59,14 @@
             this.m_user_list.ItemHeight = 12;
             this.m_user_list.Location = new System.Drawing.Point(378, 14);
             this.m_user_list.Name = "m_user_list";
-            this.m_user_list.Size = new System.Drawing.Size(146, 304);
+            this.m_user_list.Size = new System.Drawing.Size(146, 364);
             this.m_user_list.TabIndex = 6;
             this.m_user_list.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.m_user_list_MouseDoubleClick);
             // 
             // m_sendImage_btn
             // 
             this.m_sendImage_btn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.m_sendImage_btn.Location = new System.Drawing.Point(294, 253);
+            this.m_sendImage_btn.Location = new System.Drawing.Point(294, 313);
             this.m_sendImage_btn.Name = "m_sendImage_btn";
             this.m_sendImage_btn.Size = new System.Drawing.Size(63, 23);
             this.m_sendImage_btn.TabIndex = 8;
@@ -77,7 +77,7 @@
             // m_customFace_btn
             // 
             this.m_customFace_btn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.m_customFace_btn.Location = new System.Drawing.Point(213, 253);
+            this.m_customFace_btn.Location = new System.Drawing.Point(213, 313);
             this.m_customFace_btn.Name = "m_customFace_btn";
             this.m_customFace_btn.Size = new System.Drawing.Size(75, 23);
             this.m_customFace_btn.TabIndex = 9;
@@ -88,7 +88,7 @@
             // m_refresh_bt
             // 
             this.m_refresh_bt.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.m_refresh_bt.Location = new System.Drawing.Point(378, 324);
+            this.m_refresh_bt.Location = new System.Drawing.Point(378, 384);
             this.m_refresh_bt.Name = "m_refresh_bt";
             this.m_refresh_bt.Size = new System.Drawing.Size(146, 23);
             this.m_refresh_bt.TabIndex = 10;
@@ -99,7 +99,7 @@
             // m_screenShot_btn
             // 
             this.m_screenShot_btn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.m_screenShot_btn.Location = new System.Drawing.Point(132, 253);
+            this.m_screenShot_btn.Location = new System.Drawing.Point(132, 313);
             this.m_screenShot_btn.Name = "m_screenShot_btn";
             this.m_screenShot_btn.Size = new System.Drawing.Size(75, 23);
             this.m_screenShot_btn.TabIndex = 12;
@@ -110,7 +110,7 @@
             // m_rawMessage_btn
             // 
             this.m_rawMessage_btn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.m_rawMessage_btn.Location = new System.Drawing.Point(378, 354);
+            this.m_rawMessage_btn.Location = new System.Drawing.Point(378, 414);
             this.m_rawMessage_btn.Name = "m_rawMessage_btn";
             this.m_rawMessage_btn.Size = new System.Drawing.Size(144, 23);
             this.m_rawMessage_btn.TabIndex = 13;
@@ -125,14 +125,14 @@
                         | System.Windows.Forms.AnchorStyles.Right)));
             this.msgRichViewer1.Location = new System.Drawing.Point(12, 10);
             this.msgRichViewer1.Name = "msgRichViewer1";
-            this.msgRichViewer1.Size = new System.Drawing.Size(360, 240);
+            this.msgRichViewer1.Size = new System.Drawing.Size(360, 300);
             this.msgRichViewer1.TabIndex = 7;
             // 
             // GroupChatterForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(534, 390);
+            this.ClientSize = new System.Drawing.Size(534, 450);
             this.Controls.Add(this.m_rawMessage_btn);
             this.Controls.Add(this.m_screenShot_btn);
             this.Controls.Add(this.m_refresh_bt);
@@ -142,6 +142,7 @@
             this.Controls.Add(this.m_user_list);
             this.Controls.Add(this.m_msg_input_tbx);
             this.Name = "GroupChatterForm";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "GroupChatterForm";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.GroupChatterForm_FormClosed);
             this.ResumeLayout(false);

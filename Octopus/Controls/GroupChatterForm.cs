@@ -78,7 +78,11 @@ namespace Octopus.Controls
             UserInfo[] users = UserInfoManager.GetUserArray();
             foreach (UserInfo usr in users)
             {
-                OutgoingPackagePool.AddFirst(NetPackageGenerater.FindGroupUser(m_group.Key, usr.RemoteIP));
+                if (m_user_list.Items.Contains(usr))
+                    continue;
+
+                if (usr.IsAlive)
+                    OutgoingPackagePool.AddFirst(NetPackageGenerater.FindGroupUser(m_group.Key, usr.RemoteIP));
             }
         }
 

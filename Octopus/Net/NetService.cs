@@ -15,9 +15,18 @@ namespace Octopus.Net
         public static int SocketReadPort = 51668;
         public static int SocketSendPort = 52868;
         public static int SocketBufferSize = 81920;
+
+        private static int[] broadcast_timer_array = new int[] {
+            1000, 300, 400, 500, 600, 700, 800, 900, 300, 
+            300 , 300, 400, 500, 600, 700, 800, 900, 1000, 
+            5000, 5000, 10000, 30000, 60000
+        };
+
+        private static int broadcast_timer_array_index;
+
         private static NetService s_singleton = new NetService();
         private static List<NetPackage> s_tempPackages = new List<NetPackage>();
-
+        
         private Thread m_thread;
         private Socket m_read_socket;
         private Socket m_send_socket;
@@ -26,11 +35,6 @@ namespace Octopus.Net
 
         private NetService()
         {
-            OutgoingPackagePool.AddFirst(NetPackageGenerater.BroadcastFindUser());
-            OutgoingPackagePool.AddFirst(NetPackageGenerater.BroadcastFindUser());
-            OutgoingPackagePool.AddProcessedPackage(NetPackageGenerater.BroadcastFindUser());
-            OutgoingPackagePool.AddProcessedPackage(NetPackageGenerater.BroadcastFindUser());
-
             m_thread = new Thread(new ThreadStart(run));
             m_thread.Name = "Octopus_NetService";
 
@@ -138,7 +142,7 @@ namespace Octopus.Net
                         UserInfo userinfo = UserInfoManager.FindUser(p.RemoteEP);
                         string user = (userinfo == null) ? "no user" : userinfo.Username;
 
-                        Logger.WriteLine(string.Format("Send Command: {0}. Package ID: {1}. Target User: {2}", p.CommandID, p.ID, user));
+                        Logger.WriteLine(string.Format("--->> Command: {0}. Package ID: {1}. Target User: {2}", p.CommandID, p.ID, user));
                     }
                 }
 
@@ -153,8 +157,11 @@ namespace Octopus.Net
         private void thread_refresh_user_list(int ellapse)
         {
             user_refresh_timer += ellapse;
-            if (user_refresh_timer > 60 * 1000)
+            if (user_refresh_timer > broadcast_timer_array[broadcast_timer_array_index])
             {
+                if (broadcast_timer_array_index + 1 < broadcast_timer_array.Length)
+                    broadcast_timer_array_index++;
+
                 user_refresh_timer = 0;
                 OutgoingPackagePool.AddFirst(NetPackageGenerater.BroadcastFindUser());
             }

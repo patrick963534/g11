@@ -11,6 +11,7 @@ namespace Octopus.Core
         public IPEndPoint RemoteIP;
         public string Username;
         public bool IsReceiveNewMessage;
+        public bool IsAlive;
         public MessageStore MessageStore = new MessageStore();
 
         private ChatForm Chatter; 
@@ -112,16 +113,6 @@ namespace Octopus.Core
             {
                 List<UserInfo> users = new List<UserInfo>(m_users.Values);
                 return users.ToArray();
-            }
-        }
-
-        public static void DeleteUser(UserInfo user)
-        {
-            lock (LockObject)
-            {
-                string token = user.GetToken();
-                if (m_users.ContainsKey(token))
-                    m_users.Remove(token);
             }
         }
 

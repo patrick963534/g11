@@ -11,7 +11,8 @@ namespace Octopus.Core
     {
         private static string m_normalFile = "Octopus.exe";
         private static string m_updateFile = "Octopus_update.exe";
-        public static string Version = "1.99.18";
+        public static string m_version = "1.99.28";
+        public static string m_displayVersion = "1.99.18";
         public static bool InDevelopment = false;
 
         private static string CustomFaceFolderName = "CustomFace";
@@ -21,6 +22,17 @@ namespace Octopus.Core
         {
             m_cfg_folder = Path.Combine(Path.GetTempPath(), "Octopus");
             MakeSureCfgFolder();
+        }
+
+        public static string DisplayVersion
+        {
+            get { return m_displayVersion;  }
+        }
+
+        public static string Version
+        {
+            get { return m_version; }
+            set { m_version = value; }
         }
 
         private static void MakeSureCfgFolder()

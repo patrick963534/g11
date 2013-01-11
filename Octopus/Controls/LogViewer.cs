@@ -47,16 +47,20 @@ namespace Octopus.Controls
         {
             if (s_singleton != null)
             {
+                ListBox list = s_singleton.listBox1;
+
                 int max = 100 * 1000;
-                if (s_singleton.listBox1.Items.Count > max)
+                if (list.Items.Count > max)
                 {
-                    s_singleton.listBox1.Items.Clear();
+                    list.Items.Clear();
                     m_index -= max / 2;
                 }
 
                 List<string> items = Logger.GetMessageByIdx(ref m_index);
                 if (items != null)
-                    s_singleton.listBox1.Items.AddRange(items.ToArray());
+                    list.Items.AddRange(items.ToArray());
+
+                list.TopIndex = list.Items.Count - 1;
             }            
         }
 

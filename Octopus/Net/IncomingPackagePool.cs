@@ -85,7 +85,7 @@ namespace Octopus.Net
         {
             public IPEndPoint RemoteEP;
             private Dictionary<int, Content> m_contents = new Dictionary<int, Content>();
-            private Dictionary<int, int> m_pkg_ids = new Dictionary<int, int>();
+            private Dictionary<int, int> m_finishedContents = new Dictionary<int, int>();
 
             public Sender(IPEndPoint remoteEP)
             {
@@ -97,10 +97,8 @@ namespace Octopus.Net
                 if (package == null)
                     return;
 
-                if (m_pkg_ids.ContainsKey(package.ID))
+                if (m_finishedContents.ContainsKey(package.ContentID))
                     return;
-
-                m_pkg_ids.Add(package.ID, package.ID);
 
                 Content content = null;
 
@@ -121,55 +119,66 @@ namespace Octopus.Net
                     Cmd cmd = null;
                     byte[] data = content.CombineData();
 
+                    UserInfo usr = UserInfoManager.FindUser(RemoteEP);
+                    string usrname = (usr == null) ? "no user" : usr.Username;
+
                     Logger.CounterCommand_Recv(content.CommandType);
                     if (content.CommandType != NetCommandType.RemoveProcessedPackage)
-                        Logger.WriteLine("Recv Command: " + content.CommandType.ToString());
+                        Logger.WriteLine("<<--- command: " + content.CommandType.ToString() + " from :" + usrname);
 
-                    switch (content.CommandType)
-                    {
-                        case NetCommandType.AppendTextMessage:
-                            cmd = new NP_AppendTextMessageCmd(data, RemoteEP); 
-                            break;
-                        case NetCommandType.RemoveProcessedPackage: 
-                            cmd = new NP_RemoveProcessedPackageCmd(data, RemoteEP); 
-                            break;
-                        case NetCommandType.BroadcastFindUser:
-                            cmd = new NP_BroadcastFindUserCmd(data, RemoteEP);
-                            break;
-                        case NetCommandType.AddUser:
-                            cmd = new NP_AddUserCmd(data, RemoteEP);
-                            break;
-                        case NetCommandType.FindGroupUser:
-                            cmd = new NP_FindGroupUserCmd(data, RemoteEP);
-                            break;
-                        case NetCommandType.AddGroupUser:
-                            cmd = new NP_AddGroupUserCmd(data, RemoteEP);
-                            break;
-                        case NetCommandType.AppendGroupTextMessage:
-                            cmd = new NP_AppendGroupTextMessageCmd(data, RemoteEP);
-                            break;
-                        case NetCommandType.CreateNewGroup:
-                            cmd = new NP_CreateNewGroupCmd(data, RemoteEP);
-                            break;
-                        case NetCommandType.AppendImageMessage:
-                            cmd = new NP_AppendImageMessageCmd(data, RemoteEP);
-                            break;
-                        case NetCommandType.AppendGroupImageMessage:
-                            cmd = new NP_AppendGroupImageMessageCmd(data, RemoteEP);
-                            break;
-                        case NetCommandType.UserOffline:
-                            cmd = new NP_UserOfflineCmd(data, RemoteEP);
-                            break;
-                        case NetCommandType.VersionUpdate:
-                            cmd = new NP_VersionUpdateCmd(data, RemoteEP);
-                            break;
-                        
-                        default: break;
-                    }
+                    cmd = GenerateCommand(content, cmd, data);
 
                     CommandPool.AddCommand(cmd);
+
                     m_contents.Remove(content.ID);
+                    m_finishedContents.Add(content.ID, content.ID);
                 }
+            }
+
+            private Cmd GenerateCommand(Content content, Cmd cmd, byte[] data)
+            {
+                switch (content.CommandType)
+                {
+                    case NetCommandType.AppendTextMessage:
+                        cmd = new NP_AppendTextMessageCmd(data, RemoteEP);
+                        break;
+                    case NetCommandType.RemoveProcessedPackage:
+                        cmd = new NP_RemoveProcessedPackageCmd(data, RemoteEP);
+                        break;
+                    case NetCommandType.BroadcastFindUser:
+                        cmd = new NP_BroadcastFindUserCmd(data, RemoteEP);
+                        break;
+                    case NetCommandType.AddUser:
+                        cmd = new NP_AddUserCmd(data, RemoteEP);
+                        break;
+                    case NetCommandType.FindGroupUser:
+                        cmd = new NP_FindGroupUserCmd(data, RemoteEP);
+                        break;
+                    case NetCommandType.AddGroupUser:
+                        cmd = new NP_AddGroupUserCmd(data, RemoteEP);
+                        break;
+                    case NetCommandType.AppendGroupTextMessage:
+                        cmd = new NP_AppendGroupTextMessageCmd(data, RemoteEP);
+                        break;
+                    case NetCommandType.CreateNewGroup:
+                        cmd = new NP_CreateNewGroupCmd(data, RemoteEP);
+                        break;
+                    case NetCommandType.AppendImageMessage:
+                        cmd = new NP_AppendImageMessageCmd(data, RemoteEP);
+                        break;
+                    case NetCommandType.AppendGroupImageMessage:
+                        cmd = new NP_AppendGroupImageMessageCmd(data, RemoteEP);
+                        break;
+                    case NetCommandType.UserOffline:
+                        cmd = new NP_UserOfflineCmd(data, RemoteEP);
+                        break;
+                    case NetCommandType.VersionUpdate:
+                        cmd = new NP_VersionUpdateCmd(data, RemoteEP);
+                        break;
+
+                    default: break;
+                }
+                return cmd;
             }
         }
 

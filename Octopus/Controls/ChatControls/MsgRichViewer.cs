@@ -31,13 +31,8 @@ namespace Octopus.Controls.ChatControls
                 m_msgIndex++;
             }
 
-            m_msgViewer.Document.Window.ScrollTo(0, Int16.MaxValue);
-        }
-
-        protected override void OnPaint(PaintEventArgs e)
-        {
-            base.OnPaint(e);
-            m_msgViewer.Document.Window.ScrollTo(0, Int16.MaxValue);
+            m_msgViewer.Document.Body.ScrollIntoView(false);
+            m_msgViewer.Document.Window.ScrollTo(0, Int16.MaxValue - 1);
         }
     }
 }

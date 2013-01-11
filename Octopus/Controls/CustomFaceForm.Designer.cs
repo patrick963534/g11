@@ -78,6 +78,7 @@
             // 
             // m_preview_pbx
             // 
+            this.m_preview_pbx.BackColor = System.Drawing.Color.LightSlateGray;
             this.m_preview_pbx.Location = new System.Drawing.Point(263, 12);
             this.m_preview_pbx.Name = "m_preview_pbx";
             this.m_preview_pbx.Size = new System.Drawing.Size(100, 100);

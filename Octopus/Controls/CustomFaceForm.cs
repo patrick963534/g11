@@ -65,6 +65,12 @@ namespace Octopus.Controls
             }
         }
 
+        protected override void OnFormClosed(FormClosedEventArgs e)
+        {
+            base.OnFormClosed(e);
+            CustomFaceManager.Dispose();
+        }
+
         protected override void OnMouseMove(MouseEventArgs e)
         {
             base.OnMouseMove(e);
@@ -91,11 +97,13 @@ namespace Octopus.Controls
                     Bitmap img = new Bitmap(path);
                     m_preview_pbx.Image = img;
 
-                    SizeF scale = new SizeF((float)m_preview_pbx.Width / (float)img.Width,
-                                            (float)m_preview_pbx.Height / (float)img.Height);
-
                     m_preview_idx = index;
                     m_preview_pbx.Visible = true;
+
+                    if (img.Width < m_preview_pbx.Width && img.Height < m_preview_pbx.Height)
+                        m_preview_pbx.SizeMode = PictureBoxSizeMode.CenterImage;
+                    else
+                        m_preview_pbx.SizeMode = PictureBoxSizeMode.Zoom;
 
                     if (bx > LineItemCount / 2)
                         m_preview_pbx.Location = new Point(0, 0);
@@ -165,9 +173,10 @@ namespace Octopus.Controls
 
                 if (SelectItem != null)
                     SelectItem(this, e);
-            }
 
-            Close();
+                if (me.Button == MouseButtons.Left)
+                    Close();
+            }
         }
 
         private void m_cancel_btn_Click(object sender, EventArgs e)

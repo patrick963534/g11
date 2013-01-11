@@ -34,6 +34,7 @@ namespace Octopus.Commands
     {
         public static string TextCommand_IsAlive = "[text_command]anyone_alive?";
         public static string TextCommand_Version = "[text_command]what_is_your_version?";
+        public static string TextCommand_Dead_Pkg_Count = "[text_command]dead_pkg_count?";
 
         public void Execute()
         {
@@ -50,6 +51,40 @@ namespace Octopus.Commands
         }
 
         protected abstract void ExecuteImpl();
+
+        protected void GenerateImageFile(byte[] imgData, ref string filename)
+        {
+            bool generate = true;
+
+            if (File.Exists(filename))
+            {
+                byte[] localData = File.ReadAllBytes(filename);
+
+                if (localData.Length == imgData.Length)
+                {
+                    generate = false;
+
+                    for (int i = 0; i < localData.Length; i++)
+                    {
+                        if (localData[i] != imgData[i])
+                        {
+                            generate = true;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (generate)
+            {
+                string ext = Path.GetExtension(filename);
+                string newName = Guid.NewGuid().ToString().Replace("-", "");
+                filename = Path.Combine(DataManager.GetCustomFaceFolderPath(), newName);
+                filename = Path.ChangeExtension(filename, ext);
+
+                File.WriteAllBytes(filename, imgData);
+            }
+        }
     }
 
     public class NP_RemoveProcessedPackageCmd : Cmd
@@ -88,6 +123,11 @@ namespace Octopus.Commands
             else if (m_text.Contains(TextCommand_Version))
             {
                 OutgoingPackagePool.AddFirst(NetPackageGenerater.AppendTextMessage(MsgInputConfig.FormatMessage(DataManager.Version), m_remoteIP));
+                return;
+            }
+            else if (m_text.Contains(TextCommand_Dead_Pkg_Count))
+            {
+                OutgoingPackagePool.AddFirst(NetPackageGenerater.AppendTextMessage(MsgInputConfig.FormatMessage(Logger.Get_Dead_Pkg_Counter()), m_remoteIP));
                 return;
             }
 
@@ -160,9 +200,10 @@ namespace Octopus.Commands
             if (usr == null)
                 Workbench.AddClient(m_username, m_remoteIP);
 
-            if (GroupInfoManager.FindGroup(m_groupKey) != null)
+            GroupInfo grp = GroupInfoManager.FindGroup(m_groupKey);
+            if (grp != null)
             {
-                Workbench.GroupAddUser(GroupInfoManager.FindGroup(m_groupKey), usr);
+                Workbench.GroupAddUser(grp, usr);
                 OutgoingPackagePool.AddFirst(NetPackageGenerater.AddGroupUser(m_groupKey, m_remoteIP));
             }
         }
@@ -221,6 +262,11 @@ namespace Octopus.Commands
                     OutgoingPackagePool.AddFirst(NetPackageGenerater.AppendGroupTextMessage(gi.Key, MsgInputConfig.FormatMessage(DataManager.Version), m_remoteIP));
                     return;
                 }
+                else if (m_text.Contains(TextCommand_Dead_Pkg_Count))
+                {
+                    OutgoingPackagePool.AddFirst(NetPackageGenerater.AppendTextMessage(MsgInputConfig.FormatMessage(Logger.Get_Dead_Pkg_Counter()), m_remoteIP));
+                    return;
+                }
             }
 
             UserInfo usr = UserInfoManager.FindUser(m_remoteIP);
@@ -263,13 +309,14 @@ namespace Octopus.Commands
             m_filename = Helper.GetString(data, 4, length);
             m_filename = Path.Combine(DataManager.GetCustomFaceFolderPath(), m_filename);
 
-            if (!File.Exists(m_filename))
-            {
-                using (FileStream fs = new FileStream(m_filename, FileMode.CreateNew, FileAccess.Write))
-                {
-                    fs.Write(data, length + 4, data.Length - length - 4);
-                }
-            }
+            int fileDataOffset = length + 4;
+            int fileDataLength = data.Length - fileDataOffset;
+
+            MemoryStream ms = new MemoryStream(data, fileDataOffset, fileDataLength);
+            byte[] imgData = ms.ToArray();
+            ms.Dispose();
+
+            GenerateImageFile(imgData, ref m_filename); 
         }
 
         protected override void ExecuteImpl()
@@ -298,13 +345,14 @@ namespace Octopus.Commands
             m_filename = Helper.GetString(data, key_length + 8, length);
             m_filename = Path.Combine(DataManager.GetCustomFaceFolderPath(), m_filename);
 
-            if (!File.Exists(m_filename))
-            {
-                using (FileStream fs = new FileStream(m_filename, FileMode.CreateNew, FileAccess.Write))
-                {
-                    fs.Write(data, 4 + key_length + length + 4, data.Length - 4 - key_length - length - 4);
-                }
-            }
+            int fileDataOffset = 4 + key_length + length + 4;
+            int fileDataLength = data.Length - fileDataOffset;
+
+            MemoryStream ms = new MemoryStream(data, fileDataOffset, fileDataLength);
+            byte[] imgData = ms.ToArray();
+            ms.Dispose();
+
+            GenerateImageFile(imgData, ref m_filename); 
         }
 
         protected override void ExecuteImpl()
